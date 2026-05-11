@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SOAP.Data;
+using SOAP.Repository;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +20,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<ITripRepository, TripRepository>();
+builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITripLocationRepository, TripLocationRepository>();
 
 
 
