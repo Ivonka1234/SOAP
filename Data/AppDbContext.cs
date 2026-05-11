@@ -1,6 +1,39 @@
-﻿namespace SOAP.Data
-{
-    public class AppDbContext
+﻿
+    using Microsoft.EntityFrameworkCore;
+    using SOAP.Models;
+
+
+    namespace SOAP.Data
     {
+        public class AppDbContext : DbContext
+        {
+            public AppDbContext(DbContextOptions<AppDbContext> options)
+                : base(options)
+            {
+            }
+
+            public DbSet<User> Users { get; set; }
+
+            public DbSet<Trip> Trips { get; set; }
+
+            public DbSet<Location> Locations { get; set; }
+
+            public DbSet<TripLocation> TripLocations { get; set; }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                base.OnModelCreating(modelBuilder);
+
+                modelBuilder.Entity<TripLocation>()
+                    .HasOne(tl => tl.Trip)
+                    .WithMany(t => t.TripLocations)
+                    .HasForeignKey(tl => tl.TripId);
+
+                modelBuilder.Entity<TripLocation>()
+                    .HasOne(tl => tl.Location)
+                    .WithMany(l => l.TripLocations)
+                    .HasForeignKey(tl => tl.LocationId);
+            }
+        }
     }
-}
+
