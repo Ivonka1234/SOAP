@@ -4,8 +4,8 @@ namespace SOAP.Repository
 {
     public interface ITripLocationRepository
     {
-        Task AddAsync(TripLocation tripLocation);
         Task<List<TripLocation>> GetByTripIdAsync(Guid tripId);
-        Task SaveAsync();
+        Task AddAsync(TripLocation tripLocation);
+        Task DeleteAsync(Guid tripId, Guid locationId);
     }
 }
