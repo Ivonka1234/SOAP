@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SOAP.Data;
 using SOAP.Repository;
+using SOAP.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +26,9 @@ builder.Services.AddScoped<ITripRepository, TripRepository>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITripLocationRepository, TripLocationRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITripLocationService, TripLocationService>();
+builder.Services.AddScoped<ITripLocationService, TripLocationService>();
 
 
 
