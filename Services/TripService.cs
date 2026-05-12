@@ -109,5 +109,10 @@ namespace SOAP.Services
 
             return totalCost > trip.Budget;
         }
+        public async Task<bool> TripExists(Guid tripId)
+        {
+            var trip = await _tripRepository.GetByIdAsync(tripId);
+            return trip != null;
+        }
     }
 }

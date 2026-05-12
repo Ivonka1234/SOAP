@@ -8,7 +8,7 @@ namespace SOAP.Services
         Task<Trip?> GetTripByIdAsync(Guid id);
         Task<Trip> CreateTripAsync(Trip trip);
         Task<bool> UpdateTripAsync(Guid id, Trip updatedTrip);
-     
+        Task<bool> DeleteTripAsync(Guid id);
         Task<decimal> CalculateTotalCostAsync(Guid tripId);
         Task<bool> CanAddLocationAsync(Guid tripId, decimal locationCost);
         bool ValidateTripDates(DateTime startDate, DateTime endDate);

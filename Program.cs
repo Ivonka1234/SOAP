@@ -28,7 +28,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITripLocationRepository, TripLocationRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITripLocationService, TripLocationService>();
-builder.Services.AddScoped<ITripLocationService, TripLocationService>();
+builder.Services.AddScoped<IItineraryService, ItineraryService > ();
 
 
 
