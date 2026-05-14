@@ -1,4 +1,7 @@
-﻿namespace SOAP.DTOs.Trip
+﻿
+using SOAP.DTOs.TripLocation;
+
+namespace SOAP.DTOs.Trip
 {
     public class TripResponseDTO
     {

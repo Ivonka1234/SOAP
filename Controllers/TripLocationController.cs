@@ -37,6 +37,7 @@ namespace SOAP.Controllers
         }
 
         //  DELETE: api/triplocation/{tripId}/{locationId}
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{tripId}/{locationId}")]
         public async Task<IActionResult> Remove(Guid tripId, Guid locationId)
         {

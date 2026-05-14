@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SOAP.Models;
 using SOAP.Services;
 
@@ -56,6 +57,7 @@ namespace SOAP.Controllers
         }
 
         // DELETE: api/trip/{id}
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
