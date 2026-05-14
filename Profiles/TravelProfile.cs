@@ -21,6 +21,7 @@ namespace SOAP.Profiles
             CreateMap<UpdateLocationDTO, Location>();
             CreateMap<Location, LocationResponseDTO>();
 
+            CreateMap<UpdateUserDTO, User>();
             CreateMap<User, UserResponseDTO>();
 
             // TripLocation → Response

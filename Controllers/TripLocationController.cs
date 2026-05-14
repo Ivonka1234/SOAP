@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SOAP.DTOs.TripLocation;
 using SOAP.Services;
 
 namespace SOAP.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-   
+    [Authorize]
     public class TripLocationController : ControllerBase
     {
         private readonly ITripLocationService _tripLocationService;
@@ -16,7 +17,7 @@ namespace SOAP.Controllers
             _tripLocationService = tripLocationService;
         }
 
-        //  GET: api/triplocation/{tripId}
+        // GET: api/triplocation/{tripId}
         [HttpGet("{tripId}")]
         public async Task<IActionResult> GetByTrip(Guid tripId)
         {
@@ -24,11 +25,11 @@ namespace SOAP.Controllers
             return Ok(result);
         }
 
-        //  POST: api/triplocation
-        [HttpPost]
-        public async Task<IActionResult> Add([FromQuery] Guid tripId, [FromQuery] Guid locationId)
+        // POST: api/triplocation/{tripId}
+        [HttpPost("{tripId}")]
+        public async Task<IActionResult> Add(Guid tripId, AddLocationToTripDTO dto)
         {
-            var result = await _tripLocationService.AddLocationToTripAsync(tripId, locationId);
+            var result = await _tripLocationService.AddLocationToTripAsync(tripId, dto);
 
             if (!result)
                 return BadRequest("Trip or Location invalid OR already added");
@@ -36,7 +37,7 @@ namespace SOAP.Controllers
             return Ok("Location added to trip");
         }
 
-        //  DELETE: api/triplocation/{tripId}/{locationId}
+        // DELETE: api/triplocation/{tripId}/{locationId}
         [Authorize(Roles = "Admin")]
         [HttpDelete("{tripId}/{locationId}")]
         public async Task<IActionResult> Remove(Guid tripId, Guid locationId)

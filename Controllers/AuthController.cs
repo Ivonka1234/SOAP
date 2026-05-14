@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SOAP.Models;
+using SOAP.DTOs.Auth;
 using SOAP.Services;
 
 namespace SOAP.Controllers
@@ -15,22 +15,23 @@ namespace SOAP.Controllers
             _authService = authService;
         }
 
+        // POST: api/auth/register
         [HttpPost("register")]
-        public async Task<IActionResult> Register(User user)
+        public async Task<IActionResult> Register(RegisterDTO dto)
         {
-            var token = await _authService.RegisterAsync(user);
-            return Ok(token);
+            var result = await _authService.RegisterAsync(dto);
+            return Ok(result); // returns AuthResponseDTO
         }
 
+        // POST: api/auth/login
         [HttpPost("login")]
-        public async Task<IActionResult> Login(string email, string password)
+        public async Task<IActionResult> Login(LoginDTO dto)
         {
-            var token = await _authService.LoginAsync(email, password);
-
-            if (token == null)
+            var result = await _authService.LoginAsync(dto);
+            if (result == null)
                 return Unauthorized();
 
-            return Ok(token);
+            return Ok(result); // returns AuthResponseDTO
         }
     }
 }

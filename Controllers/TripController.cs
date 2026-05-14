@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SOAP.Models;
+using SOAP.DTOs.Trip;
 using SOAP.Services;
 
 namespace SOAP.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class TripController : ControllerBase
     {
         private readonly ITripService _tripService;
@@ -21,7 +22,7 @@ namespace SOAP.Controllers
         public async Task<IActionResult> GetAll()
         {
             var trips = await _tripService.GetAllTripsAsync();
-            return Ok(trips);
+            return Ok(trips); // should be List<TripResponseDTO>
         }
 
         // GET: api/trip/{id}
@@ -29,28 +30,32 @@ namespace SOAP.Controllers
         public async Task<IActionResult> GetById(Guid id)
         {
             var trip = await _tripService.GetTripByIdAsync(id);
-
             if (trip == null)
                 return NotFound();
 
-            return Ok(trip);
+            return Ok(trip); // TripResponseDTO
         }
 
         // POST: api/trip
         [HttpPost]
-        public async Task<IActionResult> Create(Trip trip)
+        public async Task<IActionResult> Create(CreateTripDTO dto)
         {
-            var created = await _tripService.CreateTripAsync(trip);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            var created = await _tripService.CreateTripAsync(dto);
+
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = created.Id },
+                created
+            );
         }
 
         // PUT: api/trip/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, Trip trip)
+        public async Task<IActionResult> Update(Guid id, UpdateTripDTO dto)
         {
-            var result = await _tripService.UpdateTripAsync(id, trip);
+            var result = await _tripService.UpdateTripAsync(id, dto);
 
-            if (!result)
+            if (result==null)
                 return NotFound();
 
             return NoContent();
@@ -68,8 +73,6 @@ namespace SOAP.Controllers
 
             return NoContent();
         }
-
-       
 
         // GET: api/trip/{id}/cost
         [HttpGet("{id}/cost")]

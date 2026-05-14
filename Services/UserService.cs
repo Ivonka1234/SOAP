@@ -28,12 +28,10 @@ namespace SOAP.Services
         public async Task<UserResponseDTO?> UpdateUserAsync(Guid id, UpdateUserDTO dto)
         {
             var existing = await _userRepository.GetByIdAsync(id);
-
             if (existing == null)
                 return null;
 
-            existing.FullName = dto.FullName;
-            existing.Email = dto.Email;
+            _mapper.Map(dto, existing);
 
             await _userRepository.UpdateAsync(existing);
 

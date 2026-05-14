@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SOAP.Services;
 
 namespace SOAP.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ItineraryController : ControllerBase
     {
         private readonly IItineraryService _itineraryService;
@@ -21,11 +23,15 @@ namespace SOAP.Controllers
             try
             {
                 var itinerary = await _itineraryService.GenerateSmartItineraryAsync(tripId);
+
+                if (itinerary == null || !itinerary.Any())
+                    return NotFound("No itinerary generated");
+
                 return Ok(itinerary);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
         }
     }
