@@ -1,4 +1,6 @@
-﻿using SOAP.Models;
+﻿using AutoMapper;
+using SOAP.DTOs.Trip;
+using SOAP.DTOs.TripLocation;
 using SOAP.Repository;
 
 namespace SOAP.Services
@@ -7,57 +9,70 @@ namespace SOAP.Services
     {
         private readonly ITripRepository _tripRepository;
         private readonly ITripLocationRepository _tripLocationRepository;
+        private readonly IMapper _mapper;
 
-        public TripService( ITripRepository tripRepository,ITripLocationRepository tripLocationRepository)
+        public TripService(
+            ITripRepository tripRepository,
+            ITripLocationRepository tripLocationRepository,
+            IMapper mapper)
         {
             _tripRepository = tripRepository;
             _tripLocationRepository = tripLocationRepository;
+            _mapper = mapper;
         }
 
-        public async Task<List<Trip>> GetAllTripsAsync()
+        public async Task<IEnumerable<TripResponseDTO>> GetAllTripsAsync()
         {
-            return await _tripRepository.GetAllAsync();
+            var trips = await _tripRepository.GetAllAsync();
+            return _mapper.Map<IEnumerable<TripResponseDTO>>(trips);
         }
 
-        public async Task<Trip?> GetTripByIdAsync(Guid id)
+        public async Task<TripResponseDTO?> GetTripByIdAsync(Guid id)
         {
-            return await _tripRepository.GetByIdAsync(id);
+            var trip = await _tripRepository.GetByIdAsync(id);
+            if (trip == null) return null;
+
+            var dto = _mapper.Map<TripResponseDTO>(trip);
+            var locations = await _tripLocationRepository.GetByTripIdAsync(id);
+
+            dto.TotalEstimatedCost = locations.Sum(x => x.Location.EstimatedCost);
+            dto.Locations = _mapper.Map<List<TripLocationResponseDto>>(locations);
+
+            return dto;
         }
 
-        public async Task<Trip> CreateTripAsync(Trip trip)
+        public async Task<TripResponseDTO> CreateTripAsync(CreateTripDTO dto)
         {
-            if (!ValidateTripDates(trip.StartDate, trip.EndDate))
+            if (!ValidateTripDates(dto.StartDate, dto.EndDate))
                 throw new Exception("Invalid trip dates");
 
+            var trip = _mapper.Map<Models.Trip>(dto);
+            trip.Id = Guid.NewGuid();
+
             await _tripRepository.AddAsync(trip);
-            return trip;
+
+            return _mapper.Map<TripResponseDTO>(trip);
         }
 
-        public async Task<bool> UpdateTripAsync(Guid id, Trip updatedTrip)
+        public async Task<TripResponseDTO?> UpdateTripAsync(Guid id, UpdateTripDTO dto)
         {
             var existing = await _tripRepository.GetByIdAsync(id);
+            if (existing == null) return null;
 
-            if (existing == null)
-                return false;
+            if (!ValidateTripDates(dto.StartDate, dto.EndDate))
+                throw new Exception("Invalid trip dates");
 
-            if (!ValidateTripDates(updatedTrip.StartDate, updatedTrip.EndDate))
-                return false;
-
-            existing.Name = updatedTrip.Name;
-            existing.Budget = updatedTrip.Budget;
-            existing.StartDate = updatedTrip.StartDate;
-            existing.EndDate = updatedTrip.EndDate;
+            _mapper.Map(dto, existing);
 
             await _tripRepository.UpdateAsync(existing);
-            return true;
+
+            return _mapper.Map<TripResponseDTO>(existing);
         }
 
         public async Task<bool> DeleteTripAsync(Guid id)
         {
             var existing = await _tripRepository.GetByIdAsync(id);
-
-            if (existing == null)
-                return false;
+            if (existing == null) return false;
 
             await _tripRepository.DeleteAsync(id);
             return true;
@@ -65,50 +80,43 @@ namespace SOAP.Services
 
         public async Task<decimal> CalculateTotalCostAsync(Guid tripId)
         {
-            var tripLocations = await _tripLocationRepository.GetByTripIdAsync(tripId);
-
-            return tripLocations.Sum(tl => tl.Location.EstimatedCost);
+            var locations = await _tripLocationRepository.GetByTripIdAsync(tripId);
+            return locations.Sum(x => x.Location.EstimatedCost);
         }
 
-        public async Task<bool> CanAddLocationAsync(Guid tripId, decimal estematedLocationCost)
+        public async Task<bool> CanAddLocationAsync(Guid tripId, decimal estimatedLocationCost)
         {
             var trip = await _tripRepository.GetByIdAsync(tripId);
-
-            if (trip == null)
-                return false;
+            if (trip == null) return false;
 
             var currentCost = await CalculateTotalCostAsync(tripId);
 
-            return (currentCost + estematedLocationCost) <= trip.Budget;
+            return currentCost + estimatedLocationCost <= trip.Budget;
         }
-
 
         public bool ValidateTripDates(DateTime startDate, DateTime endDate)
         {
             return startDate < endDate && startDate >= DateTime.UtcNow.Date;
         }
 
-        public async Task<int> GetTripDurationDays(Guid tripId)
-        {
-            var trip = await _tripRepository.GetByIdAsync(tripId);
-
-            if (trip == null)
-                return 0;
-
-            return (trip.EndDate - trip.StartDate).Days+1;
-        }
-
         public async Task<bool> IsTripOverBudget(Guid tripId)
         {
             var trip = await _tripRepository.GetByIdAsync(tripId);
-
-            if (trip == null)
-                return false;
+            if (trip == null) return false;
 
             var totalCost = await CalculateTotalCostAsync(tripId);
 
             return totalCost > trip.Budget;
         }
+
+        public async Task<int> GetTripDurationDays(Guid tripId)
+        {
+            var trip = await _tripRepository.GetByIdAsync(tripId);
+            if (trip == null) return 0;
+
+            return (trip.EndDate - trip.StartDate).Days + 1;
+        }
+
         public async Task<bool> TripExists(Guid tripId)
         {
             var trip = await _tripRepository.GetByIdAsync(tripId);

@@ -1,9 +1,10 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using SOAP.DTOs.Auth;
+using SOAP.Models;
+using SOAP.Repository;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using SOAP.Models;
-using SOAP.Repository;
 
 namespace SOAP.Services
 {
@@ -18,25 +19,45 @@ namespace SOAP.Services
             _config = config;
         }
 
-        public async Task<string> RegisterAsync(User user)
+        public async Task<AuthResponseDTO> RegisterAsync(RegisterDTO dto)
         {
-            // Default role
-            if (string.IsNullOrEmpty(user.Role))
-                user.Role = "User";
+            var existing = await _userRepository.GetByEmailAsync(dto.Email);
+
+            if (existing != null)
+                throw new Exception("User already exists");
+
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                FullName = dto.FullName,
+                Email = dto.Email,
+                PasswordHash = dto.Password,
+                Role = "User"
+            };
 
             await _userRepository.AddAsync(user);
 
-            return GenerateToken(user);
+            return new AuthResponseDTO
+            {
+                Token = GenerateToken(user),
+                Email = user.Email,
+                Role = user.Role
+            };
         }
 
-        public async Task<string?> LoginAsync(string email, string password)
+        public async Task<AuthResponseDTO?> LoginAsync(LoginDTO dto)
         {
-            var user = await _userRepository.GetByEmailAsync(email);
+            var user = await _userRepository.GetByEmailAsync(dto.Email);
 
-            if (user == null || user.PasswordHash != password)
+            if (user == null || user.PasswordHash != dto.Password)
                 return null;
 
-            return GenerateToken(user);
+            return new AuthResponseDTO
+            {
+                Token = GenerateToken(user),
+                Email = user.Email,
+                Role = user.Role
+            };
         }
 
         private string GenerateToken(User user)
@@ -45,7 +66,7 @@ namespace SOAP.Services
             {
                 new Claim(ClaimTypes.Name, user.Email),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Role, user.Role) // 🔥 ROLE HERE
+                new Claim(ClaimTypes.Role, user.Role)
             };
 
             var key = new SymmetricSecurityKey(

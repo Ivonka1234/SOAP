@@ -1,4 +1,5 @@
-﻿using SOAP.Models;
+﻿using AutoMapper;
+using SOAP.DTOs.User;
 using SOAP.Repository;
 
 namespace SOAP.Services
@@ -6,45 +7,46 @@ namespace SOAP.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, IMapper mapper)
         {
             _userRepository = userRepository;
+            _mapper = mapper;
         }
 
-        public async Task<User?> GetByEmailAsync(string email)
+        public async Task<UserResponseDTO?> GetByEmailAsync(string email)
         {
-            return await _userRepository.GetByEmailAsync(email);
+            var user = await _userRepository.GetByEmailAsync(email);
+
+            if (user == null)
+                return null;
+
+            return _mapper.Map<UserResponseDTO>(user);
         }
 
-        public async Task<User> RegisterUserAsync(User user)
+        public async Task<UserResponseDTO?> UpdateUserAsync(Guid id, UpdateUserDTO dto)
         {
-            
-            var existing = await _userRepository.GetByEmailAsync(user.Email);
-
-            if (existing != null)
-                throw new Exception("User already exists");
-
-            await _userRepository.AddAsync(user);
-            return user;
-        }
-
-        public async Task<bool> UpdateUserAsync(Guid id, User updatedUser)
-        {
-            var existing = await _userRepository.GetByEmailAsync(updatedUser.Email);
+            var existing = await _userRepository.GetByIdAsync(id);
 
             if (existing == null)
-                return false;
+                return null;
 
-            existing.FullName = updatedUser.FullName;
-            existing.Email = updatedUser.Email;
+            existing.FullName = dto.FullName;
+            existing.Email = dto.Email;
 
             await _userRepository.UpdateAsync(existing);
-            return true;
+
+            return _mapper.Map<UserResponseDTO>(existing);
         }
 
         public async Task<bool> DeleteUserAsync(Guid id)
         {
+            var existing = await _userRepository.GetByIdAsync(id);
+
+            if (existing == null)
+                return false;
+
             await _userRepository.DeleteAsync(id);
             return true;
         }

@@ -1,4 +1,6 @@
-﻿using SOAP.Models;
+﻿using AutoMapper;
+using SOAP.DTOs.TripLocation;
+using SOAP.Models;
 using SOAP.Repository;
 
 namespace SOAP.Services
@@ -7,79 +9,64 @@ namespace SOAP.Services
     {
         private readonly ITripRepository _tripRepository;
         private readonly ITripLocationRepository _tripLocationRepository;
+        private readonly IMapper _mapper;
 
         public ItineraryService(
             ITripRepository tripRepository,
-            ITripLocationRepository tripLocationRepository)
+            ITripLocationRepository tripLocationRepository,
+            IMapper mapper)
         {
             _tripRepository = tripRepository;
             _tripLocationRepository = tripLocationRepository;
+            _mapper = mapper;
         }
 
-        public async Task<Dictionary<int, List<Location>>> GenerateSmartItineraryAsync(Guid tripId)
-        {
-            var trip = await GetTripOrThrow(tripId);
-
-            var locations = await GetSortedLocations(tripId);
-
-            locations = FilterByBudget(locations, trip.Budget);
-
-            int totalDays = CalculateTripDays(trip);
-
-            return DistributeLocations(locations, totalDays);
-        }
-
-    
-
-        private async Task<Trip> GetTripOrThrow(Guid tripId)
+        public async Task<Dictionary<int, List<TripLocationResponseDto>>> GenerateSmartItineraryAsync(Guid tripId)
         {
             var trip = await _tripRepository.GetByIdAsync(tripId);
 
             if (trip == null)
                 throw new Exception("Trip not found");
 
-            return trip;
-        }
-
-        private async Task<List<Location>> GetSortedLocations(Guid tripId)
-        {
             var tripLocations = await _tripLocationRepository.GetByTripIdAsync(tripId);
 
-            return tripLocations
-                .Select(tl => tl.Location)
-                .OrderByDescending(l => l.Priority)
-                .ThenBy(l => l.EstimatedCost)      
+            var ordered = tripLocations
+                .OrderByDescending(x => x.Location.Priority)
+                .ThenBy(x => x.Location.EstimatedCost)
                 .ToList();
+
+            var filtered = FilterByBudget(ordered, trip.Budget);
+
+            var totalDays = (trip.EndDate - trip.StartDate).Days + 1;
+
+            return DistributeLocations(filtered, totalDays);
         }
 
-        private List<Location> FilterByBudget(List<Location> locations, decimal budget)
+        private List<TripLocation> FilterByBudget(List<TripLocation> locations, decimal budget)
         {
-            var result = new List<Location>();
+            var result = new List<TripLocation>();
             decimal total = 0;
 
-            foreach (var loc in locations)
+            foreach (var item in locations)
             {
-                if (total + loc.EstimatedCost <= budget)
+                if (total + item.Location.EstimatedCost <= budget)
                 {
-                    result.Add(loc);
-                    total += loc.EstimatedCost;
+                    result.Add(item);
+                    total += item.Location.EstimatedCost;
                 }
             }
 
             return result;
         }
 
-        private int CalculateTripDays(Trip trip)
+        private Dictionary<int, List<TripLocationResponseDto>> DistributeLocations(
+            List<TripLocation> locations,
+            int totalDays)
         {
-            return (trip.EndDate - trip.StartDate).Days + 1;
-        }
-
-        private Dictionary<int, List<Location>> DistributeLocations(List<Location> locations, int totalDays)
-        {
-            var itinerary = new Dictionary<int, List<Location>>();
+            var itinerary = new Dictionary<int, List<TripLocationResponseDto>>();
 
             for (int i = 1; i <= totalDays; i++)
-                itinerary[i] = new List<Location>();
+                itinerary[i] = new List<TripLocationResponseDto>();
 
             int currentDay = 1;
             int currentHours = 0;
@@ -87,8 +74,7 @@ namespace SOAP.Services
 
             foreach (var location in locations)
             {
-              
-                if (currentHours + location.VisitDurationHours > maxHoursPerDay)
+                if (currentHours + location.Location.VisitDurationHours > maxHoursPerDay)
                 {
                     currentDay++;
                     currentHours = 0;
@@ -97,8 +83,10 @@ namespace SOAP.Services
                         break;
                 }
 
-                itinerary[currentDay].Add(location);
-                currentHours += location.VisitDurationHours;
+                var dto = _mapper.Map<TripLocationResponseDto>(location);
+
+                itinerary[currentDay].Add(dto);
+                currentHours += location.Location.VisitDurationHours;
             }
 
             return itinerary;

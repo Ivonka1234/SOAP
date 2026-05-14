@@ -2,6 +2,7 @@
 using SOAP.DTOs.Location;
 using SOAP.DTOs.Trip;
 using SOAP.DTOs.TripLocation;
+using SOAP.DTOs.User;
 using SOAP.Models;
 
 namespace SOAP.Profiles
@@ -19,6 +20,8 @@ namespace SOAP.Profiles
             CreateMap<CreateLocationDTO, Location>();
             CreateMap<UpdateLocationDTO, Location>();
             CreateMap<Location, LocationResponseDTO>();
+
+            CreateMap<User, UserResponseDTO>();
 
             // TripLocation → Response
             CreateMap<TripLocation, TripLocationResponseDto>()

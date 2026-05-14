@@ -9,5 +9,6 @@ namespace SOAP.Repository
         Task UpdateAsync(User entity);
 
         Task DeleteAsync(Guid id);
+        Task<User?> GetByIdAsync(Guid id);
     }
 }
