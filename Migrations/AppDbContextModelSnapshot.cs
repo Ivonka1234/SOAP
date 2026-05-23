@@ -271,12 +271,7 @@ namespace SOAP.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Trips");
                 });
@@ -306,33 +301,6 @@ namespace SOAP.Migrations
                     b.HasIndex("TripId");
 
                     b.ToTable("TripLocations");
-                });
-
-            modelBuilder.Entity("SOAP.Models.User", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -386,17 +354,6 @@ namespace SOAP.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SOAP.Models.Trip", b =>
-                {
-                    b.HasOne("SOAP.Models.User", "User")
-                        .WithMany("Trips")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("SOAP.Models.TripLocation", b =>
                 {
                     b.HasOne("SOAP.Models.Location", "Location")
@@ -424,11 +381,6 @@ namespace SOAP.Migrations
             modelBuilder.Entity("SOAP.Models.Trip", b =>
                 {
                     b.Navigation("TripLocations");
-                });
-
-            modelBuilder.Entity("SOAP.Models.User", b =>
-                {
-                    b.Navigation("Trips");
                 });
 #pragma warning restore 612, 618
         }

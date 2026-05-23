@@ -1,50 +1,82 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using SOAP.Data;
+using SOAP.Models;
+using SOAP.Profiles;
 using SOAP.Repository;
 using SOAP.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.AspNetCore.Identity;
-using SOAP.Profiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// DATABASE
+// ================= DATABASE =================
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+
+// ================= IDENTITY =================
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// CONTROLLERS
+// ================= CONTROLLERS =================
 builder.Services.AddControllers();
 
-//  SWAGGER (simple, no OpenApi issues)
+// ================= SWAGGER (FIXED) =================
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter: Bearer YOUR_TOKEN"
+    });
 
-//  REPOSITORIES
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
+
+// ================= REPOSITORIES =================
 builder.Services.AddScoped<ITripRepository, TripRepository>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITripLocationRepository, TripLocationRepository>();
 
-//  SERVICES
+// ================= SERVICES =================
 builder.Services.AddScoped<ITripService, TripService>();
-builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITripLocationService, TripLocationService>();
 builder.Services.AddScoped<IItineraryService, ItineraryService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// ================= AUTOMAPPER =================
 builder.Services.AddAutoMapper(typeof(TravelProfile));
-//  AUTHENTICATION (JWT)
+
+// ================= JWT AUTH =================
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        var key = builder.Configuration["Jwt:Key"];
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -56,27 +88,28 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"],
 
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])
+                Encoding.UTF8.GetBytes(key)
             )
         };
     });
 
-// AUTHORIZATION
+// ================= AUTHORIZATION =================
 builder.Services.AddAuthorization();
 
+// ================= BUILD APP =================
 var app = builder.Build();
 
-//  SWAGGER
+// ================= SWAGGER =================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// MIDDLEWARE
+// ================= MIDDLEWARE =================
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
+app.UseAuthentication(); // MUST come before Authorization
 app.UseAuthorization();
 
 app.MapControllers();

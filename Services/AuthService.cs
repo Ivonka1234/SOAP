@@ -1,7 +1,7 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using SOAP.DTOs.Auth;
 using SOAP.Models;
-using SOAP.Repository;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -10,63 +10,73 @@ namespace SOAP.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly IUserRepository _userRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _config;
 
-        public AuthService(IUserRepository userRepository, IConfiguration config)
+        public AuthService(
+            UserManager<ApplicationUser> userManager,
+            IConfiguration config)
         {
-            _userRepository = userRepository;
+            _userManager = userManager;
             _config = config;
         }
 
+        //  REGISTER
         public async Task<AuthResponseDTO> RegisterAsync(RegisterDTO dto)
         {
-            var existing = await _userRepository.GetByEmailAsync(dto.Email);
-
-            if (existing != null)
-                throw new Exception("User already exists");
-
-            var user = new User
+            var user = new ApplicationUser
             {
-                Id = Guid.NewGuid(),
-                FullName = dto.FullName,
+                UserName = dto.Email,
                 Email = dto.Email,
-                PasswordHash = dto.Password,
-                Role = "User"
+                FullName = dto.FullName
             };
 
-            await _userRepository.AddAsync(user);
+            var result = await _userManager.CreateAsync(user, dto.Password);
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new Exception(errors);
+            }
 
             return new AuthResponseDTO
             {
                 Token = GenerateToken(user),
                 Email = user.Email,
-                Role = user.Role
+                Role = "User"
             };
         }
 
+        //  LOGIN
         public async Task<AuthResponseDTO?> LoginAsync(LoginDTO dto)
         {
-            var user = await _userRepository.GetByEmailAsync(dto.Email);
+            var user = await _userManager.FindByEmailAsync(dto.Email);
 
-            if (user == null || user.PasswordHash != dto.Password)
+            if (user == null)
+                return null;
+
+            var validPassword = await _userManager.CheckPasswordAsync(user, dto.Password);
+
+            if (!validPassword)
                 return null;
 
             return new AuthResponseDTO
             {
                 Token = GenerateToken(user),
                 Email = user.Email,
-                Role = user.Role
+                Role = "User"
             };
         }
 
-        private string GenerateToken(User user)
+        //  JWT TOKEN
+        private string GenerateToken(ApplicationUser user)
         {
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.NameIdentifier, user.Id), // string
+                new Claim(ClaimTypes.Email, user.Email ?? ""),
+                new Claim(ClaimTypes.Name, user.UserName ?? ""),
+                new Claim(ClaimTypes.Role, "User")
             };
 
             var key = new SymmetricSecurityKey(
@@ -79,7 +89,7 @@ namespace SOAP.Services
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddHours(2),
+                expires: DateTime.UtcNow.AddHours(2),
                 signingCredentials: creds
             );
 

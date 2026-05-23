@@ -6,7 +6,7 @@ namespace SOAP.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+
     public class ItineraryController : ControllerBase
     {
         private readonly IItineraryService _itineraryService;

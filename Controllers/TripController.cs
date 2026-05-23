@@ -7,7 +7,7 @@ namespace SOAP.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+
     public class TripController : ControllerBase
     {
         private readonly ITripService _tripService;
