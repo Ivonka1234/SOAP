@@ -67,6 +67,7 @@ builder.Services.AddScoped<ITripService, TripService>();
 builder.Services.AddScoped<ITripLocationService, TripLocationService>();
 builder.Services.AddScoped<IItineraryService, ItineraryService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ILocationService, LocationService>();
 
 // ================= AUTOMAPPER =================
 builder.Services.AddAutoMapper(typeof(TravelProfile));
