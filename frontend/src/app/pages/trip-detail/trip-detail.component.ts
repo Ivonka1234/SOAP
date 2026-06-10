@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe, CurrencyPipe } from '@angular/common';
@@ -29,6 +29,11 @@ export class TripDetailComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
   selectedLocationId = '';
+
+  availableLocations = computed(() => {
+    const added = new Set((this.trip()?.locations ?? []).map(l => l.locationId));
+    return this.allLocations().filter(loc => !added.has(loc.id));
+  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
@@ -63,12 +68,33 @@ export class TripDetailComponent implements OnInit {
 
     this.tripLocationService.add(trip.id, { locationId: this.selectedLocationId }).subscribe({
       next: () => {
+        this.error.set(null);
         this.selectedLocationId = '';
         this.loadTrip(trip.id);
       },
       error: (err) => {
-        this.error.set(err.error || 'Could not add location to trip.');
+        this.error.set(this.readError(err));
       }
     });
+  }
+
+  removeLocation(locationId: string): void {
+    const trip = this.trip();
+    if (!trip) return;
+
+    this.tripLocationService.remove(trip.id, locationId).subscribe({
+      next: () => {
+        this.error.set(null);
+        this.loadTrip(trip.id);
+      },
+      error: (err) => {
+        this.error.set(this.readError(err) || 'Could not remove location from trip.');
+      }
+    });
+  }
+
+  private readError(err: { error?: { message?: string; title?: string } | string }): string {
+    if (typeof err.error === 'string') return err.error;
+    return err.error?.message || err.error?.title || 'Could not add location to trip.';
   }
 }

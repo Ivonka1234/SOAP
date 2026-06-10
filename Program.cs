@@ -27,7 +27,11 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddDefaultTokenProviders();
 
 // ================= CONTROLLERS =================
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 
 // ================= SWAGGER (FIXED) =================
 builder.Services.AddEndpointsApiExplorer();
@@ -161,10 +165,10 @@ if (app.Environment.IsDevelopment())
 }
 
 // ================= MIDDLEWARE =================
-app.UseHttpsRedirection();
-app.UseCors("AllowAll");
-app.UseAuthentication(); // MUST come before Authorization
-app.UseAuthorization();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 var frontendPath = Path.Combine(app.Environment.ContentRootPath, "frontend", "dist", "frontend", "browser");
 IFileProvider? frontendFiles = Directory.Exists(frontendPath)
@@ -184,13 +188,32 @@ if (frontendFiles is not null)
     });
 }
 
+app.UseRouting();
+app.UseCors("AllowAll");
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 if (frontendFiles is not null)
 {
-    app.MapFallbackToFile("index.html", new StaticFileOptions
+    app.MapFallback(async context =>
     {
-        FileProvider = frontendFiles
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+
+        var indexFile = frontendFiles.GetFileInfo("index.html");
+        if (!indexFile.Exists)
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+
+        context.Response.ContentType = "text/html";
+        await context.Response.SendFileAsync(indexFile);
     });
 }
 

@@ -59,7 +59,7 @@
     <div class="add-location-row">
       <select [(ngModel)]="selectedLocationId" name="locationId">
         <option value="">Choose a location...</option>
-        @for (loc of allLocations(); track loc.id) {
+        @for (loc of availableLocations(); track loc.id) {
           <option [value]="loc.id">{{ loc.name }} ({{ loc.country }}) — {{ loc.estimatedCost | currency }}</option>
         }
       </select>
@@ -74,11 +74,11 @@
       <app-icon name="map" [size]="20" />
       Destinations on this trip
     </h2>
-    @if (t.locations.length === 0) {
+    @if ((t.locations ?? []).length === 0) {
       <p class="empty-text">No locations added yet. Pick one above!</p>
     } @else {
       <div class="location-list">
-        @for (loc of t.locations; track loc.locationId) {
+        @for (loc of (t.locations ?? []); track loc.locationId) {
           <div class="location-item">
             <div class="location-info">
               <strong>{{ loc.locationName }}</strong>
@@ -93,13 +93,21 @@
                 <app-icon name="dollar" [size]="14" />
                 {{ loc.estimatedCost | currency }}
               </span>
-              @if (loc.scheduledStartTime) {
+              @if (loc.scheduledStartTime && !loc.scheduledStartTime.startsWith('0001-')) {
                 <span class="meta-item">
                   <app-icon name="clock" [size]="14" />
                   {{ loc.scheduledStartTime | date:'short' }}
                 </span>
               }
             </div>
+            <button
+              type="button"
+              class="btn-icon"
+              (click)="removeLocation(loc.locationId)"
+              title="Remove from trip"
+            >
+              <app-icon name="trash" [size]="18" />
+            </button>
           </div>
         }
       </div>

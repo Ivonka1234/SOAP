@@ -55,7 +55,9 @@ namespace SOAP.Services
 
             await _tripRepository.AddAsync(trip);
 
-            return _mapper.Map<TripResponseDTO>(trip);
+            var created = _mapper.Map<TripResponseDTO>(trip);
+            created.Locations = new List<TripLocationResponseDto>();
+            return created;
         }
 
         public async Task<TripResponseDTO?> UpdateTripAsync(Guid id, UpdateTripDTO dto, string userId)

@@ -22,7 +22,7 @@ export interface Trip {
   startDate: string;
   endDate: string;
   totalEstimatedCost: number;
-  locations: TripLocation[];
+  locations?: TripLocation[];
 }
 
 export interface CreateTripRequest {

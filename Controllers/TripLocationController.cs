@@ -33,8 +33,11 @@ namespace SOAP.Controllers
         }
 
         [HttpPost("{tripId}")]
-        public async Task<IActionResult> Add(Guid tripId, AddLocationToTripDTO dto)
+        public async Task<IActionResult> Add(Guid tripId, [FromBody] AddLocationToTripDTO dto)
         {
+            if (dto == null || dto.LocationId == Guid.Empty)
+                return BadRequest("LocationId is required");
+
             var result = await _tripLocationService.AddLocationToTripAsync(tripId, dto, User.GetUserId());
 
             if (!result)
