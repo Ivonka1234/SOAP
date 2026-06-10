@@ -6,6 +6,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <Target Name="BuildFrontend" BeforeTargets="Build">
+    <Message Importance="high" Text="Building Angular frontend..." />
+    <Exec Command="npm ci" WorkingDirectory="$(MSBuildProjectDirectory)\frontend" Condition="!Exists('$(MSBuildProjectDirectory)\frontend\node_modules')" />
+    <Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)\frontend" />
+  </Target>
+
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />

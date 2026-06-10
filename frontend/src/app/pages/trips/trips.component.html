@@ -1,0 +1,84 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <app-icon name="suitcase" [size]="28" />
+      My Trips
+    </h1>
+    <p class="page-sub">Create and manage your travel adventures</p>
+  </div>
+  <button type="button" class="btn btn-primary" (click)="openCreate()">+ New trip</button>
+</div>
+
+@if (error()) {
+  <div class="alert alert-error">{{ error() }}</div>
+}
+
+@if (showForm()) {
+  <div class="card form-card">
+    <h2>{{ editingId() ? 'Edit trip' : 'New trip' }}</h2>
+    <form (ngSubmit)="save()" class="form-grid">
+      <div class="form-group">
+        <label>Trip name</label>
+        <input type="text" [(ngModel)]="name" name="name" required placeholder="Summer in Europe" />
+      </div>
+      <div class="form-group">
+        <label>Budget ($)</label>
+        <input type="number" [(ngModel)]="budget" name="budget" required min="0" step="0.01" />
+      </div>
+      <div class="form-group">
+        <label>Start date</label>
+        <input type="date" [(ngModel)]="startDate" name="startDate" required />
+      </div>
+      <div class="form-group">
+        <label>End date</label>
+        <input type="date" [(ngModel)]="endDate" name="endDate" required />
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" (click)="cancelForm()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save trip</button>
+      </div>
+    </form>
+  </div>
+}
+
+@if (loading()) {
+  <div class="loading">Loading trips...</div>
+} @else if (trips().length === 0) {
+  <div class="empty-state card">
+    <app-icon class="empty-icon" name="flower" [size]="48" />
+    <h3>No trips yet</h3>
+    <p>Create your first trip to get started!</p>
+    <button type="button" class="btn btn-primary" (click)="openCreate()">Create a trip</button>
+  </div>
+} @else {
+  <div class="trip-grid">
+    @for (trip of trips(); track trip.id) {
+      <article class="trip-card card">
+        <div class="trip-card-header">
+          <h3>{{ trip.name }}</h3>
+          <button type="button" class="btn-icon" (click)="openEdit(trip)" title="Edit">
+            <app-icon name="edit" [size]="18" />
+          </button>
+        </div>
+        <div class="trip-meta">
+          <span class="meta-item">
+            <app-icon name="calendar" [size]="14" />
+            {{ trip.startDate | date:'mediumDate' }} – {{ trip.endDate | date:'mediumDate' }}
+          </span>
+          <span class="meta-item">
+            <app-icon name="money" [size]="14" />
+            Budget: {{ trip.budget | currency }}
+          </span>
+          <span class="meta-item">
+            <app-icon name="tag" [size]="14" />
+            Est. cost: {{ trip.totalEstimatedCost | currency }}
+          </span>
+        </div>
+        <div class="trip-actions">
+          <a [routerLink]="['/trips', trip.id]" class="btn btn-secondary btn-sm">View details</a>
+          <a [routerLink]="['/itinerary']" [queryParams]="{ tripId: trip.id }" class="btn btn-ghost btn-sm">Itinerary</a>
+        </div>
+      </article>
+    }
+  </div>
+}

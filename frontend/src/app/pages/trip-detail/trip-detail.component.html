@@ -1,0 +1,108 @@
+<a routerLink="/trips" class="back-link">← Back to trips</a>
+
+@if (loading()) {
+  <div class="loading">Loading trip...</div>
+} @else if (trip()) {
+  @let t = trip()!;
+  <div class="page-header">
+    <div>
+      <h1>{{ t.name }}</h1>
+      <p class="page-sub">
+        {{ t.startDate | date:'mediumDate' }} – {{ t.endDate | date:'mediumDate' }}
+      </p>
+    </div>
+    <a [routerLink]="['/itinerary']" [queryParams]="{ tripId: t.id }" class="btn btn-primary">
+      View itinerary
+    </a>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+  }
+
+  <div class="stats-row">
+    <div class="stat-card card">
+      <app-icon class="stat-icon" name="money" [size]="28" />
+      <div>
+        <p class="stat-label">Budget</p>
+        <p class="stat-value">{{ t.budget | currency }}</p>
+      </div>
+    </div>
+    <div class="stat-card card">
+      <app-icon class="stat-icon" name="tag" [size]="28" />
+      <div>
+        <p class="stat-label">Estimated cost</p>
+        <p class="stat-value">{{ (cost() ?? t.totalEstimatedCost) | currency }}</p>
+      </div>
+    </div>
+    <div class="stat-card card">
+      <app-icon class="stat-icon" name="calendar-days" [size]="28" />
+      <div>
+        <p class="stat-label">Duration</p>
+        <p class="stat-value">{{ duration() ?? '—' }} days</p>
+      </div>
+    </div>
+    <div class="stat-card card" [class.over-budget]="overBudget()">
+      <app-icon class="stat-icon" [name]="overBudget() ? 'warning' : 'check'" [size]="28" />
+      <div>
+        <p class="stat-label">Budget status</p>
+        <p class="stat-value">{{ overBudget() === null ? '—' : (overBudget() ? 'Over budget' : 'On track') }}</p>
+      </div>
+    </div>
+  </div>
+
+  <section class="card section-card">
+    <h2 class="section-title">
+      <app-icon name="pin" [size]="20" />
+      Add a destination
+    </h2>
+    <div class="add-location-row">
+      <select [(ngModel)]="selectedLocationId" name="locationId">
+        <option value="">Choose a location...</option>
+        @for (loc of allLocations(); track loc.id) {
+          <option [value]="loc.id">{{ loc.name }} ({{ loc.country }}) — {{ loc.estimatedCost | currency }}</option>
+        }
+      </select>
+      <button type="button" class="btn btn-primary" (click)="addLocation()" [disabled]="!selectedLocationId">
+        Add to trip
+      </button>
+    </div>
+  </section>
+
+  <section class="card section-card">
+    <h2 class="section-title">
+      <app-icon name="map" [size]="20" />
+      Destinations on this trip
+    </h2>
+    @if (t.locations.length === 0) {
+      <p class="empty-text">No locations added yet. Pick one above!</p>
+    } @else {
+      <div class="location-list">
+        @for (loc of t.locations; track loc.locationId) {
+          <div class="location-item">
+            <div class="location-info">
+              <strong>{{ loc.locationName }}</strong>
+              <span>{{ loc.country }}</span>
+            </div>
+            <div class="location-details">
+              <span class="meta-item">
+                <app-icon name="clock" [size]="14" />
+                {{ loc.visitDurationHours }}h
+              </span>
+              <span class="meta-item">
+                <app-icon name="dollar" [size]="14" />
+                {{ loc.estimatedCost | currency }}
+              </span>
+              @if (loc.scheduledStartTime) {
+                <span class="meta-item">
+                  <app-icon name="clock" [size]="14" />
+                  {{ loc.scheduledStartTime | date:'short' }}
+                </span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </section>
+}

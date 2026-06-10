@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SOAP.Data;
@@ -94,6 +95,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // ================= AUTHORIZATION =================
 builder.Services.AddAuthorization();
 
@@ -109,10 +120,36 @@ if (app.Environment.IsDevelopment())
 
 // ================= MIDDLEWARE =================
 app.UseHttpsRedirection();
-
+app.UseCors("AllowAll");
 app.UseAuthentication(); // MUST come before Authorization
 app.UseAuthorization();
 
+var frontendPath = Path.Combine(app.Environment.ContentRootPath, "frontend", "dist", "frontend", "browser");
+IFileProvider? frontendFiles = Directory.Exists(frontendPath)
+    ? new PhysicalFileProvider(frontendPath)
+    : null;
+
+if (frontendFiles is not null)
+{
+    app.UseDefaultFiles(new DefaultFilesOptions
+    {
+        FileProvider = frontendFiles
+    });
+
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = frontendFiles
+    });
+}
+
 app.MapControllers();
+
+if (frontendFiles is not null)
+{
+    app.MapFallbackToFile("index.html", new StaticFileOptions
+    {
+        FileProvider = frontendFiles
+    });
+}
 
 app.Run();

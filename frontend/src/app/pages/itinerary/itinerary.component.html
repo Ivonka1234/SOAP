@@ -1,0 +1,79 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <app-icon name="calendar" [size]="28" />
+      Smart Itinerary
+    </h1>
+    <p class="page-sub">Your day-by-day travel plan, auto-generated</p>
+  </div>
+</div>
+
+<div class="card picker-card">
+  <div class="picker-row">
+    <div class="form-group">
+      <label>Select a trip</label>
+      <select [(ngModel)]="selectedTripId" name="tripId">
+        <option value="">Choose a trip...</option>
+        @for (trip of trips(); track trip.id) {
+          <option [value]="trip.id">{{ trip.name }}</option>
+        }
+      </select>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="generate()" [disabled]="!selectedTripId || loading()">
+      @if (!loading()) {
+        <app-icon name="sparkle" [size]="16" />
+      }
+      {{ loading() ? 'Generating...' : 'Generate itinerary' }}
+    </button>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="alert alert-error">{{ error() }}</div>
+}
+
+@if (itinerary(); as plan) {
+  @if ((plan | keyvalue).length === 0) {
+    <div class="empty-state card">
+      <app-icon class="empty-icon" name="moon" [size]="48" />
+      <h3>No stops scheduled</h3>
+      <p>Add locations to your trip first, then generate again.</p>
+    </div>
+  } @else {
+    <div class="days-grid">
+      @for (day of plan | keyvalue; track day.key) {
+        <section class="day-card card">
+          <h2 class="day-title">
+            Day {{ day.key }}
+            <app-icon name="flower" [size]="18" />
+          </h2>
+          <div class="stops-list">
+            @for (stop of day.value; track stop.locationId) {
+              <div class="stop-item">
+                <div class="stop-order">{{ stop.order }}</div>
+                <div class="stop-content">
+                  <strong>{{ stop.locationName }}</strong>
+                  <span class="stop-country">{{ stop.country }}</span>
+                  <div class="stop-meta">
+                    <span class="meta-item">
+                      <app-icon name="clock" [size]="12" />
+                      {{ stop.scheduledStartTime | date:'shortTime' }}
+                    </span>
+                    <span class="meta-item">
+                      <app-icon name="clock" [size]="12" />
+                      {{ stop.visitDurationHours }}h
+                    </span>
+                    <span class="meta-item">
+                      <app-icon name="dollar" [size]="12" />
+                      {{ stop.estimatedCost | currency }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+    </div>
+  }
+}

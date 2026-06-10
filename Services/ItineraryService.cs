@@ -60,8 +60,8 @@ namespace SOAP.Services
         }
 
         private Dictionary<int, List<TripLocationResponseDto>> DistributeLocations(
-            List<TripLocation> locations,
-            int totalDays)
+     List<TripLocation> locations,
+     int totalDays)
         {
             var itinerary = new Dictionary<int, List<TripLocationResponseDto>>();
 
@@ -71,6 +71,7 @@ namespace SOAP.Services
             int currentDay = 1;
             int currentHours = 0;
             int maxHoursPerDay = 8;
+            int order = 1;
 
             foreach (var location in locations)
             {
@@ -85,7 +86,14 @@ namespace SOAP.Services
 
                 var dto = _mapper.Map<TripLocationResponseDto>(location);
 
+                dto.Order = order++;
+
+                
+                dto.ScheduledStartTime = DateTime.Today.AddDays(currentDay - 1)
+                                                       .AddHours(9 + currentHours);
+
                 itinerary[currentDay].Add(dto);
+
                 currentHours += location.Location.VisitDurationHours;
             }
 

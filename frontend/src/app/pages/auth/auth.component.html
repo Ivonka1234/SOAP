@@ -1,0 +1,41 @@
+<div class="auth-page">
+  <div class="auth-card card">
+    <div class="auth-header">
+      <app-icon class="auth-icon" name="flower" [size]="48" />
+      <h1>Welcome back!</h1>
+      <p>Sign in or create an account to plan your adventures</p>
+    </div>
+
+    <div class="tabs">
+      <button type="button" [class.active]="mode() === 'login'" (click)="setMode('login')">Login</button>
+      <button type="button" [class.active]="mode() === 'register'" (click)="setMode('register')">Register</button>
+    </div>
+
+    @if (error()) {
+      <div class="alert alert-error">{{ error() }}</div>
+    }
+
+    <form (ngSubmit)="submit()" class="auth-form">
+      @if (mode() === 'register') {
+        <div class="form-group">
+          <label for="fullName">Full name</label>
+          <input id="fullName" type="text" [(ngModel)]="fullName" name="fullName" required placeholder="Your name" />
+        </div>
+      }
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" type="email" [(ngModel)]="email" name="email" required placeholder="you@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" [(ngModel)]="password" name="password" required placeholder="••••••••" />
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" [disabled]="loading()">
+        {{ loading() ? 'Please wait...' : (mode() === 'login' ? 'Sign in' : 'Create account') }}
+      </button>
+    </form>
+  </div>
+</div>

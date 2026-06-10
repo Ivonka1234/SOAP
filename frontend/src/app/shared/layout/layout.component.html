@@ -1,0 +1,36 @@
+<div class="app-shell">
+  <header class="topbar">
+    <a routerLink="/" class="brand">
+      <app-icon class="brand-icon" name="plane" [size]="24" />
+      <span class="brand-text">SOAP Travel</span>
+    </a>
+
+    <nav class="nav-links">
+      <a routerLink="/trips" routerLinkActive="active">Trips</a>
+      <a routerLink="/locations" routerLinkActive="active">Locations</a>
+      <a routerLink="/itinerary" routerLinkActive="active">Itinerary</a>
+    </nav>
+
+    <div class="user-area">
+      @if (auth.isLoggedIn()) {
+        <span class="user-badge">
+          <app-icon name="flower" [size]="14" />
+          {{ auth.currentEmail() }}
+        </span>
+        <button type="button" class="btn btn-ghost" (click)="logout()">Logout</button>
+      } @else {
+        <a routerLink="/auth" class="btn btn-primary">Sign in</a>
+      }
+    </div>
+  </header>
+
+  <main class="main-content">
+    <router-outlet />
+  </main>
+
+  <footer class="footer">
+    <span class="footer-text">
+      Made with <app-icon name="heart" [size]="14" /> for smart travel planning
+    </span>
+  </footer>
+</div>
