@@ -38,24 +38,38 @@ namespace SOAP.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateTripDTO dto)
         {
-            var created = await _tripService.CreateTripAsync(dto, User.GetUserId());
+            try
+            {
+                var created = await _tripService.CreateTripAsync(dto, User.GetUserId());
 
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = created.Id },
-                created
-            );
+                return CreatedAtAction(
+                    nameof(GetById),
+                    new { id = created.Id },
+                    created
+                );
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, UpdateTripDTO dto)
         {
-            var result = await _tripService.UpdateTripAsync(id, dto, User.GetUserId());
+            try
+            {
+                var result = await _tripService.UpdateTripAsync(id, dto, User.GetUserId());
 
-            if (result == null)
-                return NotFound();
+                if (result == null)
+                    return NotFound();
 
-            return NoContent();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [Authorize(Roles = "Admin")]

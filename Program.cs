@@ -79,7 +79,11 @@ builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddAutoMapper(typeof(TravelProfile));
 
 // ================= JWT AUTH =================
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
     .AddJwtBearer(options =>
     {
         var key = builder.Configuration["Jwt:Key"];
@@ -99,6 +103,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ),
 
             RoleClaimType = ClaimTypes.Role
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/json";
+                return context.Response.WriteAsJsonAsync(new { message = "Unauthorized" });
+            }
         };
     });
 
@@ -177,15 +192,20 @@ IFileProvider? frontendFiles = Directory.Exists(frontendPath)
 
 if (frontendFiles is not null)
 {
-    app.UseDefaultFiles(new DefaultFilesOptions
-    {
-        FileProvider = frontendFiles
-    });
+    app.UseWhen(
+        context => !context.Request.Path.StartsWithSegments("/api"),
+        branch =>
+        {
+            branch.UseDefaultFiles(new DefaultFilesOptions
+            {
+                FileProvider = frontendFiles
+            });
 
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        FileProvider = frontendFiles
-    });
+            branch.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = frontendFiles
+            });
+        });
 }
 
 app.UseRouting();
@@ -202,6 +222,8 @@ if (frontendFiles is not null)
         if (context.Request.Path.StartsWithSegments("/api"))
         {
             context.Response.StatusCode = StatusCodes.Status404NotFound;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new { message = "Endpoint not found." });
             return;
         }
 

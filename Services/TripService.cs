@@ -46,8 +46,11 @@ namespace SOAP.Services
 
         public async Task<TripResponseDTO> CreateTripAsync(CreateTripDTO dto, string userId)
         {
+            dto.StartDate = NormalizeToUtcDate(dto.StartDate);
+            dto.EndDate = NormalizeToUtcDate(dto.EndDate);
+
             if (!ValidateTripDates(dto.StartDate, dto.EndDate))
-                throw new Exception("Invalid trip dates");
+                throw new Exception("Invalid trip dates. Start must be today or later and not after end date.");
 
             var trip = _mapper.Map<Models.Trip>(dto);
             trip.Id = Guid.NewGuid();
@@ -68,12 +71,17 @@ namespace SOAP.Services
             var existing = await _tripRepository.GetByIdAsync(id);
             if (existing == null) return null;
 
+            dto.StartDate = NormalizeToUtcDate(dto.StartDate);
+            dto.EndDate = NormalizeToUtcDate(dto.EndDate);
+
             if (!ValidateTripDates(dto.StartDate, dto.EndDate))
-                throw new Exception("Invalid trip dates");
+                throw new Exception("Invalid trip dates. Start must be today or later and not after end date.");
 
             var ownerId = existing.UserId;
             _mapper.Map(dto, existing);
             existing.UserId = ownerId;
+            existing.StartDate = dto.StartDate;
+            existing.EndDate = dto.EndDate;
 
             await _tripRepository.UpdateAsync(existing);
 
@@ -113,8 +121,13 @@ namespace SOAP.Services
 
         public bool ValidateTripDates(DateTime startDate, DateTime endDate)
         {
-            return startDate < endDate && startDate >= DateTime.UtcNow.Date;
+            var start = startDate.Date;
+            var end = endDate.Date;
+            return start <= end && start >= DateTime.UtcNow.Date;
         }
+
+        private static DateTime NormalizeToUtcDate(DateTime date) =>
+            DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
 
         public async Task<bool> IsTripOverBudget(Guid tripId, string userId)
         {

@@ -22,7 +22,7 @@ export class TripService {
   }
 
   update(id: string, dto: UpdateTripRequest) {
-    return this.http.put<void>(`${this.base}/${id}`, dto);
+    return this.http.put<Trip>(`${this.base}/${id}`, dto);
   }
 
   delete(id: string) {

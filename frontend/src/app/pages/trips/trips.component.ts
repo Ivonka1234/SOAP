@@ -76,19 +76,24 @@ export class TripsComponent implements OnInit {
     const dto = {
       name: this.name,
       budget: this.budget,
-      startDate: this.startDate,
-      endDate: this.endDate
+      startDate: this.toUtcDate(this.startDate),
+      endDate: this.toUtcDate(this.endDate)
     };
 
     const id = this.editingId();
     const onSuccess = () => {
       this.showForm.set(false);
+      this.editingId.set(null);
+      this.error.set(null);
       this.loadTrips();
     };
-    const onError = (err: { error?: { message?: string } | string }) => {
-      this.error.set(
-        (typeof err.error === 'object' ? err.error?.message : err.error) || 'Failed to save trip.'
-      );
+    const onError = (err: { error?: { message?: string; title?: string } | string; message?: string }) => {
+      const body = err.error;
+      const message =
+        (typeof body === 'object' ? body?.message ?? body?.title : body) ||
+        err.message ||
+        'Failed to save trip.';
+      this.error.set(message);
     };
 
     if (id) {
@@ -96,6 +101,10 @@ export class TripsComponent implements OnInit {
     } else {
       this.tripService.create(dto).subscribe({ next: onSuccess, error: onError });
     }
+  }
+
+  private toUtcDate(date: string): string {
+    return `${date}T00:00:00.000Z`;
   }
 
   deleteTrip(id: string): void {
