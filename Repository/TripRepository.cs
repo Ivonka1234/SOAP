@@ -27,6 +27,20 @@ namespace SOAP.Repository
                 .ToListAsync();
         }
 
+        public async Task<List<Trip>> GetByUserIdAsync(string userId)
+        {
+            return await _context.Trips
+                .Where(t => t.UserId == userId)
+                .Include(t => t.TripLocations)
+                .ThenInclude(tl => tl.Location)
+                .ToListAsync();
+        }
+
+        public async Task<bool> BelongsToUserAsync(Guid tripId, string userId)
+        {
+            return await _context.Trips.AnyAsync(t => t.Id == tripId && t.UserId == userId);
+        }
+
         public async Task<Trip?> GetByIdAsync(Guid id)
         {
             return await _context.Trips

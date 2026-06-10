@@ -7,7 +7,7 @@ namespace SOAP.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-  
+    [Authorize]
     public class LocationController : ControllerBase
     {
         private readonly ILocationService _locationService;
@@ -32,6 +32,7 @@ namespace SOAP.Controllers
             return Ok(location);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateLocationDTO dto)
         {
@@ -39,6 +40,7 @@ namespace SOAP.Controllers
             return Ok(created);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, UpdateLocationDTO dto)
         {
@@ -48,6 +50,7 @@ namespace SOAP.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {

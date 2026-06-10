@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SOAP.DTOs.Trip;
+using SOAP.Extensions;
 using SOAP.Services;
 
 namespace SOAP.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-
+    [Authorize]
     public class TripController : ControllerBase
     {
         private readonly ITripService _tripService;
@@ -17,30 +18,27 @@ namespace SOAP.Controllers
             _tripService = tripService;
         }
 
-        // GET: api/trip
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var trips = await _tripService.GetAllTripsAsync();
-            return Ok(trips); // should be List<TripResponseDTO>
+            var trips = await _tripService.GetAllTripsAsync(User.GetUserId());
+            return Ok(trips);
         }
 
-        // GET: api/trip/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var trip = await _tripService.GetTripByIdAsync(id);
+            var trip = await _tripService.GetTripByIdAsync(id, User.GetUserId());
             if (trip == null)
                 return NotFound();
 
-            return Ok(trip); // TripResponseDTO
+            return Ok(trip);
         }
 
-        // POST: api/trip
         [HttpPost]
         public async Task<IActionResult> Create(CreateTripDTO dto)
         {
-            var created = await _tripService.CreateTripAsync(dto);
+            var created = await _tripService.CreateTripAsync(dto, User.GetUserId());
 
             return CreatedAtAction(
                 nameof(GetById),
@@ -49,19 +47,17 @@ namespace SOAP.Controllers
             );
         }
 
-        // PUT: api/trip/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, UpdateTripDTO dto)
         {
-            var result = await _tripService.UpdateTripAsync(id, dto);
+            var result = await _tripService.UpdateTripAsync(id, dto, User.GetUserId());
 
-            if (result==null)
+            if (result == null)
                 return NotFound();
 
             return NoContent();
         }
 
-        // DELETE: api/trip/{id}
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
@@ -74,27 +70,33 @@ namespace SOAP.Controllers
             return NoContent();
         }
 
-        // GET: api/trip/{id}/cost
         [HttpGet("{id}/cost")]
         public async Task<IActionResult> GetTotalCost(Guid id)
         {
-            var cost = await _tripService.CalculateTotalCostAsync(id);
+            if (!await _tripService.UserOwnsTripAsync(id, User.GetUserId()))
+                return NotFound();
+
+            var cost = await _tripService.CalculateTotalCostAsync(id, User.GetUserId());
             return Ok(cost);
         }
 
-        // GET: api/trip/{id}/duration
         [HttpGet("{id}/duration")]
         public async Task<IActionResult> GetDuration(Guid id)
         {
-            var days = await _tripService.GetTripDurationDays(id);
+            if (!await _tripService.UserOwnsTripAsync(id, User.GetUserId()))
+                return NotFound();
+
+            var days = await _tripService.GetTripDurationDays(id, User.GetUserId());
             return Ok(days);
         }
 
-        // GET: api/trip/{id}/overbudget
         [HttpGet("{id}/overbudget")]
         public async Task<IActionResult> IsOverBudget(Guid id)
         {
-            var result = await _tripService.IsTripOverBudget(id);
+            if (!await _tripService.UserOwnsTripAsync(id, User.GetUserId()))
+                return NotFound();
+
+            var result = await _tripService.IsTripOverBudget(id, User.GetUserId());
             return Ok(result);
         }
     }

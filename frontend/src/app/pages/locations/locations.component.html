@@ -6,7 +6,9 @@
     </h1>
     <p class="page-sub">Manage destinations for your trips</p>
   </div>
-  <button type="button" class="btn btn-primary" (click)="openCreate()">+ New location</button>
+  @if (isAdmin()) {
+    <button type="button" class="btn btn-primary" (click)="openCreate()">+ New location</button>
+  }
 </div>
 
 @if (error()) {
@@ -52,7 +54,9 @@
     <app-icon class="empty-icon" name="flower" [size]="48" />
     <h3>No locations yet</h3>
     <p>Add your first destination!</p>
-    <button type="button" class="btn btn-primary" (click)="openCreate()">Add location</button>
+    @if (isAdmin()) {
+      <button type="button" class="btn btn-primary" (click)="openCreate()">Add location</button>
+    }
   </div>
 } @else {
   <div class="location-grid">
@@ -63,14 +67,16 @@
             <app-icon name="star" [size]="12" />
             {{ loc.priority }}
           </span>
-          <div class="card-actions">
-            <button type="button" class="btn-icon" (click)="openEdit(loc)" title="Edit">
-              <app-icon name="edit" [size]="18" />
-            </button>
-            <button type="button" class="btn-icon" (click)="delete(loc.id)" title="Delete">
-              <app-icon name="trash" [size]="18" />
-            </button>
-          </div>
+          @if (isAdmin()) {
+            <div class="card-actions">
+              <button type="button" class="btn-icon" (click)="openEdit(loc)" title="Edit">
+                <app-icon name="edit" [size]="18" />
+              </button>
+              <button type="button" class="btn-icon" (click)="delete(loc.id)" title="Delete">
+                <app-icon name="trash" [size]="18" />
+              </button>
+            </div>
+          }
         </div>
         <h3>{{ loc.name }}</h3>
         <p class="country">{{ loc.country }}</p>

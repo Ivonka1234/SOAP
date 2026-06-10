@@ -1,7 +1,8 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CurrencyPipe } from '@angular/common';
 import { LocationService } from '../../core/services/location.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Location } from '../../core/models';
 import { IconComponent } from '../../shared/icon/icon.component';
 
@@ -14,6 +15,9 @@ import { IconComponent } from '../../shared/icon/icon.component';
 })
 export class LocationsComponent implements OnInit {
   private readonly locationService = inject(LocationService);
+  private readonly authService = inject(AuthService);
+
+  readonly isAdmin = computed(() => this.authService.currentRole() === 'Admin');
 
   locations = signal<Location[]>([]);
   loading = signal(true);

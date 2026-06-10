@@ -1,8 +1,9 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { DatePipe, CurrencyPipe } from '@angular/common';
 import { TripService } from '../../core/services/trip.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Trip } from '../../core/models';
 import { IconComponent } from '../../shared/icon/icon.component';
 
@@ -15,6 +16,9 @@ import { IconComponent } from '../../shared/icon/icon.component';
 })
 export class TripsComponent implements OnInit {
   private readonly tripService = inject(TripService);
+  private readonly authService = inject(AuthService);
+
+  readonly isAdmin = computed(() => this.authService.currentRole() === 'Admin');
 
   trips = signal<Trip[]>([]);
   loading = signal(true);
@@ -92,5 +96,14 @@ export class TripsComponent implements OnInit {
     } else {
       this.tripService.create(dto).subscribe({ next: onSuccess, error: onError });
     }
+  }
+
+  deleteTrip(id: string): void {
+    if (!confirm('Delete this trip?')) return;
+
+    this.tripService.delete(id).subscribe({
+      next: () => this.loadTrips(),
+      error: () => this.error.set('Failed to delete trip.')
+    });
   }
 }

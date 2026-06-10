@@ -11,17 +11,19 @@ namespace SOAP.Services
     public class AuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _config;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager,
             IConfiguration config)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _config = config;
         }
 
-        //  REGISTER
         public async Task<AuthResponseDTO> RegisterAsync(RegisterDTO dto)
         {
             var user = new ApplicationUser
@@ -39,15 +41,21 @@ namespace SOAP.Services
                 throw new Exception(errors);
             }
 
+            if (!await _roleManager.RoleExistsAsync("User"))
+                await _roleManager.CreateAsync(new IdentityRole("User"));
+
+            await _userManager.AddToRoleAsync(user, "User");
+
+            var roles = await _userManager.GetRolesAsync(user);
+
             return new AuthResponseDTO
             {
-                Token = GenerateToken(user),
+                Token = await GenerateTokenAsync(user),
                 Email = user.Email,
-                Role = "User"
+                Role = GetPrimaryRole(roles)
             };
         }
 
-        //  LOGIN
         public async Task<AuthResponseDTO?> LoginAsync(LoginDTO dto)
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
@@ -60,27 +68,31 @@ namespace SOAP.Services
             if (!validPassword)
                 return null;
 
+            var roles = await _userManager.GetRolesAsync(user);
+
             return new AuthResponseDTO
             {
-                Token = GenerateToken(user),
+                Token = await GenerateTokenAsync(user),
                 Email = user.Email,
-                Role = "User"
+                Role = GetPrimaryRole(roles)
             };
         }
 
-        //  JWT TOKEN
-        private string GenerateToken(ApplicationUser user)
+        private async Task<string> GenerateTokenAsync(ApplicationUser user)
         {
-            var claims = new[]
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id), // string
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Email, user.Email ?? ""),
-                new Claim(ClaimTypes.Name, user.UserName ?? ""),
-                new Claim(ClaimTypes.Role, "User")
+                new Claim(ClaimTypes.Name, user.UserName ?? "")
             };
 
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_config["Jwt:Key"])
+                Encoding.UTF8.GetBytes(_config["Jwt:Key"]!)
             );
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -94,6 +106,14 @@ namespace SOAP.Services
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private static string GetPrimaryRole(IList<string> roles)
+        {
+            if (roles.Contains("Admin"))
+                return "Admin";
+
+            return roles.FirstOrDefault() ?? "User";
         }
     }
 }

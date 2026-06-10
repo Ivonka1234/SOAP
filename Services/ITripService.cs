@@ -1,20 +1,18 @@
 ﻿using SOAP.DTOs.Trip;
-using SOAP.Models;
 
 namespace SOAP.Services
 {
     public interface ITripService
     {
-        Task<IEnumerable<TripResponseDTO>> GetAllTripsAsync();
-        Task<TripResponseDTO?> GetTripByIdAsync(Guid id);
-        Task<TripResponseDTO> CreateTripAsync(CreateTripDTO dto);
-        Task<TripResponseDTO?> UpdateTripAsync(Guid id, UpdateTripDTO dto);
+        Task<IEnumerable<TripResponseDTO>> GetAllTripsAsync(string userId);
+        Task<TripResponseDTO?> GetTripByIdAsync(Guid id, string userId);
+        Task<TripResponseDTO> CreateTripAsync(CreateTripDTO dto, string userId);
+        Task<TripResponseDTO?> UpdateTripAsync(Guid id, UpdateTripDTO dto, string userId);
         Task<bool> DeleteTripAsync(Guid id);
-        Task<decimal> CalculateTotalCostAsync(Guid tripId);
-        Task<bool> CanAddLocationAsync(Guid tripId, decimal estimatedLocationCost);
-        Task<bool> IsTripOverBudget(Guid tripId);
-        Task<int> GetTripDurationDays(Guid tripId);
-        Task<bool> TripExists(Guid tripId);
-
+        Task<decimal> CalculateTotalCostAsync(Guid tripId, string userId);
+        Task<bool> CanAddLocationAsync(Guid tripId, decimal estimatedLocationCost, string userId);
+        Task<bool> IsTripOverBudget(Guid tripId, string userId);
+        Task<int> GetTripDurationDays(Guid tripId, string userId);
+        Task<bool> UserOwnsTripAsync(Guid tripId, string userId);
     }
 }

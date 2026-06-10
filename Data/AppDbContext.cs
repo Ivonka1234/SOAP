@@ -33,6 +33,12 @@ using Microsoft.EntityFrameworkCore;
                     .HasOne(tl => tl.Location)
                     .WithMany(l => l.TripLocations)
                     .HasForeignKey(tl => tl.LocationId);
+
+                modelBuilder.Entity<Trip>()
+                    .HasOne(t => t.User)
+                    .WithMany()
+                    .HasForeignKey(t => t.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
             }
         }
     }

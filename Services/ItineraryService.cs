@@ -21,8 +21,11 @@ namespace SOAP.Services
             _mapper = mapper;
         }
 
-        public async Task<Dictionary<int, List<TripLocationResponseDto>>> GenerateSmartItineraryAsync(Guid tripId)
+        public async Task<Dictionary<int, List<TripLocationResponseDto>>?> GenerateSmartItineraryAsync(Guid tripId, string userId)
         {
+            if (!await _tripRepository.BelongsToUserAsync(tripId, userId))
+                return null;
+
             var trip = await _tripRepository.GetByIdAsync(tripId);
 
             if (trip == null)
@@ -88,7 +91,6 @@ namespace SOAP.Services
 
                 dto.Order = order++;
 
-                
                 dto.ScheduledStartTime = DateTime.Today.AddDays(currentDay - 1)
                                                        .AddHours(9 + currentHours);
 

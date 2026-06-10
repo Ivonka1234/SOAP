@@ -56,9 +56,16 @@
       <article class="trip-card card">
         <div class="trip-card-header">
           <h3>{{ trip.name }}</h3>
-          <button type="button" class="btn-icon" (click)="openEdit(trip)" title="Edit">
-            <app-icon name="edit" [size]="18" />
-          </button>
+          <div class="card-actions">
+            <button type="button" class="btn-icon" (click)="openEdit(trip)" title="Edit">
+              <app-icon name="edit" [size]="18" />
+            </button>
+            @if (isAdmin()) {
+              <button type="button" class="btn-icon" (click)="deleteTrip(trip.id)" title="Delete">
+                <app-icon name="trash" [size]="18" />
+              </button>
+            }
+          </div>
         </div>
         <div class="trip-meta">
           <span class="meta-item">

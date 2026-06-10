@@ -24,14 +24,20 @@ namespace SOAP.Services
             _mapper = mapper;
         }
 
-        public async Task<List<TripLocationResponseDto>> GetTripLocationsAsync(Guid tripId)
+        public async Task<List<TripLocationResponseDto>> GetTripLocationsAsync(Guid tripId, string userId)
         {
+            if (!await _tripRepository.BelongsToUserAsync(tripId, userId))
+                return new List<TripLocationResponseDto>();
+
             var locations = await _tripLocationRepository.GetByTripIdAsync(tripId);
             return _mapper.Map<List<TripLocationResponseDto>>(locations);
         }
 
-        public async Task<bool> AddLocationToTripAsync(Guid tripId, AddLocationToTripDTO dto)
+        public async Task<bool> AddLocationToTripAsync(Guid tripId, AddLocationToTripDTO dto, string userId)
         {
+            if (!await _tripRepository.BelongsToUserAsync(tripId, userId))
+                return false;
+
             var trip = await _tripRepository.GetByIdAsync(tripId);
             if (trip == null) return false;
 
@@ -53,8 +59,11 @@ namespace SOAP.Services
             return true;
         }
 
-        public async Task<bool> RemoveLocationFromTripAsync(Guid tripId, Guid locationId)
+        public async Task<bool> RemoveLocationFromTripAsync(Guid tripId, Guid locationId, string userId)
         {
+            if (!await _tripRepository.BelongsToUserAsync(tripId, userId))
+                return false;
+
             var existing = await _tripLocationRepository.GetByTripIdAsync(tripId);
 
             if (!existing.Any(x => x.LocationId == locationId))
