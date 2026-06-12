@@ -196,6 +196,16 @@ Console.WriteLine($"Frontend Exists: {Directory.Exists(frontendPath)}");
 IFileProvider? frontendFiles = Directory.Exists(frontendPath)
     ? new PhysicalFileProvider(frontendPath)
     : null;
+
+
+if (Directory.Exists(app.Environment.ContentRootPath))
+{
+    foreach (var dir in Directory.GetDirectories(app.Environment.ContentRootPath, "*", SearchOption.AllDirectories))
+    {
+        Console.WriteLine(dir);
+    }
+}
+
 if (frontendFiles is not null)
 {
     app.UseWhen(

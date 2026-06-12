@@ -6,7 +6,6 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
 
-	<!-- Build Angular -->
 	<Target Name="BuildFrontend" BeforeTargets="Build">
 		<Message Importance="high" Text="Building Angular frontend..." />
 
@@ -18,16 +17,11 @@
 			  WorkingDirectory="$(MSBuildProjectDirectory)/frontend" />
 	</Target>
 
-	<!-- Copy Angular dist files to publish folder -->
 	<ItemGroup>
-		<DistFiles Include="frontend/dist/frontend/**/*" />
+		<Content Update="frontend/dist/frontend/**">
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
 	</ItemGroup>
-
-	<Target Name="CopyFrontendToPublish" AfterTargets="Publish">
-		<Copy
-		  SourceFiles="@(DistFiles)"
-		  DestinationFiles="@(DistFiles->'$(PublishDir)frontend/dist/frontend/%(RecursiveDir)%(Filename)%(Extension)')" />
-	</Target>
 
 	<ItemGroup>
 		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
@@ -36,11 +30,9 @@
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
 			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
 			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.1" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />

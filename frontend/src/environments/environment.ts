@@ -1,4 +1,4 @@
 export const environment = {
-  production: false,
-  apiUrl: '/api'
+  production: true,
+  apiUrl: 'https://soap-api-qiv2.onrender.com/api'
 };
