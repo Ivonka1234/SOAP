@@ -186,8 +186,7 @@ var frontendPath = Path.Combine(
     app.Environment.ContentRootPath,
     "frontend",
     "dist",
-    "frontend",
-    "browser"
+    "frontend"
 );
 
 Console.WriteLine($"ContentRoot: {app.Environment.ContentRootPath}");
