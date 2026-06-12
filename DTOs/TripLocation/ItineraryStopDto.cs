@@ -12,7 +12,6 @@ namespace SOAP.DTOs.TripLocation
 
         public decimal EstimatedCost { get; set; }
 
-        /// <summary>Fixed display time (9:00 AM) for the assigned day — not hour-stacked scheduling.</summary>
         public DateTime? ScheduledStartTime { get; set; }
     }
 }

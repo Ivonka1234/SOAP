@@ -18,7 +18,9 @@ namespace SOAP.Services
             _tripLocationRepository = tripLocationRepository;
         }
 
-        public async Task<Dictionary<int, List<ItineraryStopDto>>?> GenerateSmartItineraryAsync(Guid tripId, string userId)
+        public async Task<Dictionary<int, List<ItineraryStopDto>>?> GenerateSmartItineraryAsync(
+            Guid tripId,
+            string userId)
         {
             if (!await _tripRepository.BelongsToUserAsync(tripId, userId))
                 return null;
@@ -35,58 +37,39 @@ namespace SOAP.Services
                 .ThenBy(x => x.Location.EstimatedCost)
                 .ToList();
 
-            var filtered = FilterByBudget(ordered, trip.Budget);
+            var totalDays = TripDateHelper.GetInclusiveCalendarDayCount(
+                trip.StartDate,
+                trip.EndDate);
 
-            var totalDays = TripDateHelper.GetInclusiveCalendarDayCount(trip.StartDate, trip.EndDate);
-
-            return DistributeLocations(filtered, totalDays);
-        }
-
-        private List<TripLocation> FilterByBudget(List<TripLocation> locations, decimal budget)
-        {
-            var result = new List<TripLocation>();
-            decimal total = 0;
-
-            foreach (var item in locations)
-            {
-                if (total + item.Location.EstimatedCost <= budget)
-                {
-                    result.Add(item);
-                    total += item.Location.EstimatedCost;
-                }
-            }
-
-            return result;
+            return DistributeLocations(ordered, totalDays);
         }
 
         private Dictionary<int, List<ItineraryStopDto>> DistributeLocations(
-            List<TripLocation> locations,
-            int totalDays)
+     List<TripLocation> locations,
+     int totalDays)
         {
             var itinerary = new Dictionary<int, List<ItineraryStopDto>>();
 
-            for (int i = 1; i <= totalDays; i++)
-                itinerary[i] = new List<ItineraryStopDto>();
+            for (int day = 1; day <= totalDays; day++)
+            {
+                itinerary[day] = new List<ItineraryStopDto>();
+            }
 
-            if (totalDays <= 0 || locations.Count == 0)
+            if (locations.Count == 0)
                 return itinerary;
 
-            var order = 1;
-            var displayTime = DateTime.Today.AddHours(9);
-
-            for (var i = 0; i < locations.Count; i++)
+            for (int day = 1; day <= totalDays; day++)
             {
-                var day = (i % totalDays) + 1;
-                var loc = locations[i].Location;
+                var location = locations[(day - 1) % locations.Count].Location;
 
                 itinerary[day].Add(new ItineraryStopDto
                 {
-                    LocationId = loc.Id,
-                    LocationName = loc.Name,
-                    Country = loc.Country,
-                    Order = order++,
-                    EstimatedCost = loc.EstimatedCost,
-                    ScheduledStartTime = displayTime
+                    LocationId = location.Id,
+                    LocationName = location.Name,
+                    Country = location.Country,
+                    Order = day,
+                    EstimatedCost = location.EstimatedCost,
+                    ScheduledStartTime = null
                 });
             }
 
