@@ -1,5 +1,5 @@
-﻿using AutoMapper;
-using SOAP.DTOs.TripLocation;
+﻿using SOAP.DTOs.TripLocation;
+using SOAP.Helpers;
 using SOAP.Models;
 using SOAP.Repository;
 
@@ -9,19 +9,16 @@ namespace SOAP.Services
     {
         private readonly ITripRepository _tripRepository;
         private readonly ITripLocationRepository _tripLocationRepository;
-        private readonly IMapper _mapper;
 
         public ItineraryService(
             ITripRepository tripRepository,
-            ITripLocationRepository tripLocationRepository,
-            IMapper mapper)
+            ITripLocationRepository tripLocationRepository)
         {
             _tripRepository = tripRepository;
             _tripLocationRepository = tripLocationRepository;
-            _mapper = mapper;
         }
 
-        public async Task<Dictionary<int, List<TripLocationResponseDto>>?> GenerateSmartItineraryAsync(Guid tripId, string userId)
+        public async Task<Dictionary<int, List<ItineraryStopDto>>?> GenerateSmartItineraryAsync(Guid tripId, string userId)
         {
             if (!await _tripRepository.BelongsToUserAsync(tripId, userId))
                 return null;
@@ -40,7 +37,7 @@ namespace SOAP.Services
 
             var filtered = FilterByBudget(ordered, trip.Budget);
 
-            var totalDays = (trip.EndDate - trip.StartDate).Days + 1;
+            var totalDays = TripDateHelper.GetInclusiveCalendarDayCount(trip.StartDate, trip.EndDate);
 
             return DistributeLocations(filtered, totalDays);
         }
@@ -62,41 +59,35 @@ namespace SOAP.Services
             return result;
         }
 
-        private Dictionary<int, List<TripLocationResponseDto>> DistributeLocations(
-     List<TripLocation> locations,
-     int totalDays)
+        private Dictionary<int, List<ItineraryStopDto>> DistributeLocations(
+            List<TripLocation> locations,
+            int totalDays)
         {
-            var itinerary = new Dictionary<int, List<TripLocationResponseDto>>();
+            var itinerary = new Dictionary<int, List<ItineraryStopDto>>();
 
             for (int i = 1; i <= totalDays; i++)
-                itinerary[i] = new List<TripLocationResponseDto>();
+                itinerary[i] = new List<ItineraryStopDto>();
 
-            int currentDay = 1;
-            int currentHours = 0;
-            int maxHoursPerDay = 8;
-            int order = 1;
+            if (totalDays <= 0 || locations.Count == 0)
+                return itinerary;
 
-            foreach (var location in locations)
+            var order = 1;
+            var displayTime = DateTime.Today.AddHours(9);
+
+            for (var i = 0; i < locations.Count; i++)
             {
-                if (currentHours + location.Location.VisitDurationHours > maxHoursPerDay)
+                var day = (i % totalDays) + 1;
+                var loc = locations[i].Location;
+
+                itinerary[day].Add(new ItineraryStopDto
                 {
-                    currentDay++;
-                    currentHours = 0;
-
-                    if (currentDay > totalDays)
-                        break;
-                }
-
-                var dto = _mapper.Map<TripLocationResponseDto>(location);
-
-                dto.Order = order++;
-
-                dto.ScheduledStartTime = DateTime.Today.AddDays(currentDay - 1)
-                                                       .AddHours(9 + currentHours);
-
-                itinerary[currentDay].Add(dto);
-
-                currentHours += location.Location.VisitDurationHours;
+                    LocationId = loc.Id,
+                    LocationName = loc.Name,
+                    Country = loc.Country,
+                    Order = order++,
+                    EstimatedCost = loc.EstimatedCost,
+                    ScheduledStartTime = displayTime
+                });
             }
 
             return itinerary;

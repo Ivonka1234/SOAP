@@ -86,19 +86,9 @@
             </div>
             <div class="location-details">
               <span class="meta-item">
-                <app-icon name="clock" [size]="14" />
-                {{ loc.visitDurationHours }}h
-              </span>
-              <span class="meta-item">
                 <app-icon name="dollar" [size]="14" />
                 {{ loc.estimatedCost | currency }}
               </span>
-              @if (loc.scheduledStartTime && !loc.scheduledStartTime.startsWith('0001-')) {
-                <span class="meta-item">
-                  <app-icon name="clock" [size]="14" />
-                  {{ loc.scheduledStartTime | date:'short' }}
-                </span>
-              }
             </div>
             <button
               type="button"

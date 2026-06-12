@@ -43,7 +43,7 @@ namespace SOAP.Controllers
             if (!result)
                 return BadRequest("Trip or Location invalid OR already added");
 
-            return Ok("Location added to trip");
+            return NoContent();
         }
 
         [HttpDelete("{tripId}/{locationId}")]

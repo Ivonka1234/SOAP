@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using SOAP.DTOs.Trip;
 using SOAP.DTOs.TripLocation;
+using SOAP.Helpers;
 using SOAP.Repository;
 
 namespace SOAP.Services
@@ -24,7 +25,14 @@ namespace SOAP.Services
         public async Task<IEnumerable<TripResponseDTO>> GetAllTripsAsync(string userId)
         {
             var trips = await _tripRepository.GetByUserIdAsync(userId);
-            return _mapper.Map<IEnumerable<TripResponseDTO>>(trips);
+
+            return trips.Select(trip =>
+            {
+                var dto = _mapper.Map<TripResponseDTO>(trip);
+                dto.TotalEstimatedCost = trip.TripLocations.Sum(x => x.Location.EstimatedCost);
+                dto.Locations = _mapper.Map<List<TripLocationResponseDto>>(trip.TripLocations);
+                return dto;
+            });
         }
 
         public async Task<TripResponseDTO?> GetTripByIdAsync(Guid id, string userId)
@@ -127,7 +135,7 @@ namespace SOAP.Services
         }
 
         private static DateTime NormalizeToUtcDate(DateTime date) =>
-            DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
+            TripDateHelper.NormalizeToUtcDate(date);
 
         public async Task<bool> IsTripOverBudget(Guid tripId, string userId)
         {
@@ -150,7 +158,7 @@ namespace SOAP.Services
             var trip = await _tripRepository.GetByIdAsync(tripId);
             if (trip == null) return 0;
 
-            return (trip.EndDate - trip.StartDate).Days + 1;
+            return TripDateHelper.GetInclusiveCalendarDayCount(trip.StartDate, trip.EndDate);
         }
 
         public Task<bool> UserOwnsTripAsync(Guid tripId, string userId) =>

@@ -2,29 +2,9 @@
   <div>
     <h1 class="page-title">
       <app-icon name="calendar" [size]="28" />
-      Smart Itinerary
+      Itinerary
     </h1>
-    <p class="page-sub">Your day-by-day travel plan, auto-generated</p>
-  </div>
-</div>
-
-<div class="card picker-card">
-  <div class="picker-row">
-    <div class="form-group">
-      <label>Select a trip</label>
-      <select [(ngModel)]="selectedTripId" name="tripId">
-        <option value="">Choose a trip...</option>
-        @for (trip of trips(); track trip.id) {
-          <option [value]="trip.id">{{ trip.name }}</option>
-        }
-      </select>
-    </div>
-    <button type="button" class="btn btn-primary" (click)="generate()" [disabled]="!selectedTripId || loading()">
-      @if (!loading()) {
-        <app-icon name="sparkle" [size]="16" />
-      }
-      {{ loading() ? 'Generating...' : 'Generate itinerary' }}
-    </button>
+    <p class="page-sub">Your day-by-day travel plan</p>
   </div>
 </div>
 
@@ -32,48 +12,60 @@
   <div class="alert alert-error">{{ error() }}</div>
 }
 
-@if (itinerary(); as plan) {
-  @if ((plan | keyvalue).length === 0) {
-    <div class="empty-state card">
-      <app-icon class="empty-icon" name="moon" [size]="48" />
-      <h3>No stops scheduled</h3>
-      <p>Add locations to your trip first, then generate again.</p>
+<div class="card picker-card">
+  <div class="picker-row">
+    <div class="form-group">
+      <label for="tripSelect">Select trip</label>
+      <select id="tripSelect" [(ngModel)]="selectedTripId" name="tripSelect">
+        @for (trip of trips(); track trip.id) {
+          <option [value]="trip.id">
+            {{ trip.name }} ({{ trip.startDate | date:'mediumDate' }} – {{ trip.endDate | date:'mediumDate' }})
+          </option>
+        }
+      </select>
     </div>
-  } @else {
+    <button type="button" class="btn btn-primary" (click)="generate()" [disabled]="!selectedTripId || loading()">
+      Generate itinerary
+    </button>
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="loading">Generating itinerary...</div>
+} @else if (itinerary(); as plan) {
+  @if (hasDays(plan)) {
     <div class="days-grid">
-      @for (day of plan | keyvalue; track day.key) {
-        <section class="day-card card">
-          <h2 class="day-title">
-            Day {{ day.key }}
-            <app-icon name="flower" [size]="18" />
-          </h2>
-          <div class="stops-list">
-            @for (stop of day.value; track stop.locationId) {
-              <div class="stop-item">
-                <div class="stop-order">{{ stop.order }}</div>
-                <div class="stop-content">
-                  <strong>{{ stop.locationName }}</strong>
-                  <span class="stop-country">{{ stop.country }}</span>
-                  <div class="stop-meta">
-                    <span class="meta-item">
-                      <app-icon name="clock" [size]="12" />
-                      {{ stop.scheduledStartTime | date:'shortTime' }}
-                    </span>
-                    <span class="meta-item">
-                      <app-icon name="clock" [size]="12" />
-                      {{ stop.visitDurationHours }}h
-                    </span>
-                    <span class="meta-item">
-                      <app-icon name="dollar" [size]="12" />
-                      {{ stop.estimatedCost | currency }}
-                    </span>
+      @for (day of sortedDays(plan); track day) {
+        <article class="day-card card">
+          <h2 class="day-title">Day {{ day }}</h2>
+          @if (plan[day].length > 0) {
+            <div class="stops-list">
+              @for (stop of plan[day]; track stop.locationId + stop.order) {
+                <div class="stop-item">
+                  <span class="stop-order">{{ stop.order }}</span>
+                  <div class="stop-content">
+                    <strong>{{ stop.locationName }}</strong>
+                    <span class="stop-country">{{ stop.country }}</span>
+                    <div class="stop-meta">
+                      @if (stop.scheduledStartTime) {
+                        <span>{{ stop.scheduledStartTime | date:'shortTime' }}</span>
+                      }
+                      <span>{{ stop.estimatedCost | currency }}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            }
-          </div>
-        </section>
+              }
+            </div>
+          } @else {
+            <p class="empty-day">No stops scheduled for this day.</p>
+          }
+        </article>
       }
+    </div>
+  } @else {
+    <div class="empty-state card">
+      <h3>No itinerary days</h3>
+      <p>Select a trip and generate an itinerary.</p>
     </div>
   }
 }

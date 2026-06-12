@@ -30,6 +30,13 @@
   font-size: 1.125rem;
 }
 
+.empty-day {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 .stops-list {
   display: flex;
   flex-direction: column;

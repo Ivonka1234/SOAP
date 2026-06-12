@@ -14,7 +14,7 @@ export class TripLocationService {
   }
 
   add(tripId: string, dto: AddLocationToTripRequest) {
-    return this.http.post<string>(`${this.base}/${tripId}`, dto);
+    return this.http.post<void>(`${this.base}/${tripId}`, dto);
   }
 
   remove(tripId: string, locationId: string) {

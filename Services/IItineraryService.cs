@@ -4,6 +4,6 @@ namespace SOAP.Services
 {
     public interface IItineraryService
     {
-        Task<Dictionary<int, List<TripLocationResponseDto>>?> GenerateSmartItineraryAsync(Guid tripId, string userId);
+        Task<Dictionary<int, List<ItineraryStopDto>>?> GenerateSmartItineraryAsync(Guid tripId, string userId);
     }
 }

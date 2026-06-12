@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { DatePipe, CurrencyPipe, KeyValuePipe } from '@angular/common';
+import { DatePipe, CurrencyPipe } from '@angular/common';
 import { ItineraryService } from '../../core/services/itinerary.service';
 import { TripService } from '../../core/services/trip.service';
 import { Itinerary, Trip } from '../../core/models';
@@ -10,7 +10,7 @@ import { IconComponent } from '../../shared/icon/icon.component';
 @Component({
   selector: 'app-itinerary',
   standalone: true,
-  imports: [FormsModule, DatePipe, CurrencyPipe, KeyValuePipe, IconComponent],
+  imports: [FormsModule, DatePipe, CurrencyPipe, IconComponent],
   templateUrl: './itinerary.component.html',
   styleUrl: './itinerary.component.scss'
 })
@@ -55,5 +55,13 @@ export class ItineraryComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  hasDays(plan: Itinerary): boolean {
+    return Object.keys(plan).length > 0;
+  }
+
+  sortedDays(plan: Itinerary): string[] {
+    return Object.keys(plan).sort((a, b) => Number(a) - Number(b));
   }
 }

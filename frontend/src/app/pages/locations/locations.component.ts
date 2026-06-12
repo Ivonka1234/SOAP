@@ -28,7 +28,6 @@ export class LocationsComponent implements OnInit {
   name = '';
   country = '';
   estimatedCost = 0;
-  visitDurationHours = 1;
   priority = 1;
 
   ngOnInit(): void {
@@ -60,7 +59,6 @@ export class LocationsComponent implements OnInit {
     this.name = loc.name;
     this.country = loc.country;
     this.estimatedCost = loc.estimatedCost;
-    this.visitDurationHours = loc.visitDurationHours;
     this.priority = loc.priority;
     this.showForm.set(true);
   }
@@ -75,7 +73,7 @@ export class LocationsComponent implements OnInit {
       name: this.name,
       country: this.country,
       estimatedCost: this.estimatedCost,
-      visitDurationHours: this.visitDurationHours,
+      visitDurationHours: 1,
       priority: this.priority
     };
 
@@ -107,7 +105,6 @@ export class LocationsComponent implements OnInit {
     this.name = '';
     this.country = '';
     this.estimatedCost = 0;
-    this.visitDurationHours = 1;
     this.priority = 1;
   }
 }

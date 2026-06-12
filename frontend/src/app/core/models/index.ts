@@ -61,13 +61,22 @@ export interface TripLocation {
   locationName: string;
   country: string;
   order: number;
-  scheduledStartTime: string;
-  visitDurationHours: number;
+  scheduledStartTime?: string;
+  visitDurationHours?: number;
   estimatedCost: number;
+}
+
+export interface ItineraryStop {
+  locationId: string;
+  locationName: string;
+  country: string;
+  order: number;
+  estimatedCost: number;
+  scheduledStartTime?: string;
 }
 
 export interface AddLocationToTripRequest {
   locationId: string;
 }
 
-export type Itinerary = Record<string, TripLocation[]>;
+export type Itinerary = Record<string, ItineraryStop[]>;
