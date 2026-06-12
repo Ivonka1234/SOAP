@@ -2,9 +2,12 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe, CurrencyPipe } from '@angular/common';
+
 import { ItineraryService } from '../../core/services/itinerary.service';
 import { TripService } from '../../core/services/trip.service';
-import { Itinerary, Trip } from '../../core/models';
+
+import { Itinerary, Trip, TripLocation } from '../../core/models';
+
 import { IconComponent } from '../../shared/icon/icon.component';
 
 @Component({
@@ -15,12 +18,14 @@ import { IconComponent } from '../../shared/icon/icon.component';
   styleUrl: './itinerary.component.scss'
 })
 export class ItineraryComponent implements OnInit {
+
   private readonly itineraryService = inject(ItineraryService);
   private readonly tripService = inject(TripService);
   private readonly route = inject(ActivatedRoute);
 
   trips = signal<Trip[]>([]);
   selectedTripId = '';
+
   itinerary = signal<Itinerary | null>(null);
   loading = signal(false);
   error = signal<string | null>(null);
@@ -28,7 +33,9 @@ export class ItineraryComponent implements OnInit {
   ngOnInit(): void {
     this.tripService.getAll().subscribe(trips => {
       this.trips.set(trips);
+
       const queryId = this.route.snapshot.queryParamMap.get('tripId');
+
       if (queryId) {
         this.selectedTripId = queryId;
         this.generate();
@@ -39,7 +46,9 @@ export class ItineraryComponent implements OnInit {
   }
 
   generate(): void {
-    if (!this.selectedTripId) return;
+    if (!this.selectedTripId) {
+      return;
+    }
 
     this.loading.set(true);
     this.error.set(null);
@@ -51,7 +60,12 @@ export class ItineraryComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.message || err.error || 'Could not generate itinerary.');
+        this.error.set(
+          err.error?.message ||
+          err.error ||
+          'Could not generate itinerary.'
+        );
+
         this.loading.set(false);
       }
     });
@@ -63,5 +77,9 @@ export class ItineraryComponent implements OnInit {
 
   sortedDays(plan: Itinerary): string[] {
     return Object.keys(plan).sort((a, b) => Number(a) - Number(b));
+  }
+
+  getStops(plan: Itinerary, day: string): TripLocation[] {
+    return plan[day] ?? [];
   }
 }

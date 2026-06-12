@@ -1,7 +1,7 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">
-      <app-icon name="calendar" [size]="28" />
+      <app-icon name="calendar" [size]="28"></app-icon>
       Itinerary
     </h1>
     <p class="page-sub">Your day-by-day travel plan</p>
@@ -9,63 +9,128 @@
 </div>
 
 @if (error()) {
-  <div class="alert alert-error">{{ error() }}</div>
+<div class="alert alert-error">
+  {{ error() }}
+</div>
 }
 
 <div class="card picker-card">
   <div class="picker-row">
     <div class="form-group">
       <label for="tripSelect">Select trip</label>
-      <select id="tripSelect" [(ngModel)]="selectedTripId" name="tripSelect">
+
+      <select id="tripSelect"
+              [(ngModel)]="selectedTripId"
+              name="tripSelect">
+
         @for (trip of trips(); track trip.id) {
-          <option [value]="trip.id">
-            {{ trip.name }} ({{ trip.startDate | date:'mediumDate' }} – {{ trip.endDate | date:'mediumDate' }})
-          </option>
+        <option [value]="trip.id">
+          {{ trip.name }}
+          ({{ trip.startDate | date:'mediumDate' }} –
+          {{ trip.endDate | date:'mediumDate' }})
+        </option>
         }
+
       </select>
     </div>
-    <button type="button" class="btn btn-primary" (click)="generate()" [disabled]="!selectedTripId || loading()">
+
+    <button type="button"
+            class="btn btn-primary"
+            (click)="generate()"
+            [disabled]="!selectedTripId || loading()">
+
       Generate itinerary
     </button>
   </div>
 </div>
 
 @if (loading()) {
-  <div class="loading">Generating itinerary...</div>
-} @else if (itinerary(); as plan) {
+
+<div class="loading">
+  Generating itinerary...
+</div>
+
+} @else {
+  @if (itinerary(); as plan) {
+
   @if (hasDays(plan)) {
-    <div class="days-grid">
-      @for (day of sortedDays(plan); track day) {
-        <article class="day-card card">
-          <h2 class="day-title">Day {{ day }}</h2>
-          @if (plan[day].length > 0) {
-            <div class="stops-list">
-              @for (stop of plan[day]; track stop.locationId + stop.order) {
-                <div class="stop-item">
-                  <span class="stop-order">{{ stop.order }}</span>
-                  <div class="stop-content">
-                    <strong>{{ stop.locationName }}</strong>
-                    <span class="stop-country">{{ stop.country }}</span>
-                    <div class="stop-meta">
-                      @if (stop.scheduledStartTime) {
-                        <span>{{ stop.scheduledStartTime | date:'shortTime' }}</span>
-                      }
-                      <span>{{ stop.estimatedCost | currency }}</span>
-                    </div>
-                  </div>
-                </div>
-              }
-            </div>
-          } @else {
-            <p class="empty-day">No stops scheduled for this day.</p>
-          }
-        </article>
+
+<div class="days-grid">
+
+  @for (day of sortedDays(plan); track day) {
+
+  <article class="day-card card">
+
+    <h2 class="day-title">
+      Day {{ day }}
+    </h2>
+
+    @if (getStops(plan, day).length > 0) {
+
+    <div class="stops-list">
+
+      @for (stop of getStops(plan, day); track stop.locationId) {
+
+      <div class="stop-item">
+
+        <span class="stop-order">
+          {{ stop.order }}
+        </span>
+
+        <div class="stop-content">
+
+          <strong>
+            {{ stop.locationName }}
+          </strong>
+
+          <span class="stop-country">
+            {{ stop.country }}
+          </span>
+
+          <div class="stop-meta">
+
+            @if (stop.scheduledStartTime) {
+            <span>
+              {{ stop.scheduledStartTime | date:'shortTime' }}
+            </span>
+            }
+
+            <span>
+              {{ stop.estimatedCost | currency }}
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
       }
+
     </div>
+
+    } @else {
+
+    <p class="empty-day">
+      No stops scheduled for this day.
+    </p>
+
+    }
+
+  </article>
+
+  }
+
+</div>
+
   } @else {
-    <div class="empty-state card">
-      <h3>No itinerary days</h3>
-      <p>Select a trip and generate an itinerary.</p>
-    </div>
+
+<div class="empty-state card">
+  <h3>No itinerary days</h3>
+  <p>Select a trip and generate an itinerary.</p>
+</div>
+
+  }
+
   }
 }
