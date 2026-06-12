@@ -173,11 +173,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ================= SWAGGER =================
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 // ================= MIDDLEWARE =================
 if (!app.Environment.IsDevelopment())
@@ -185,11 +182,21 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-var frontendPath = Path.Combine(app.Environment.ContentRootPath, "frontend", "dist", "frontend", "browser");
+var frontendPath = Path.Combine(
+    app.Environment.ContentRootPath,
+    "frontend",
+    "dist",
+    "frontend",
+    "browser"
+);
+
+Console.WriteLine($"ContentRoot: {app.Environment.ContentRootPath}");
+Console.WriteLine($"FrontendPath: {frontendPath}");
+Console.WriteLine($"Frontend Exists: {Directory.Exists(frontendPath)}");
+
 IFileProvider? frontendFiles = Directory.Exists(frontendPath)
     ? new PhysicalFileProvider(frontendPath)
     : null;
-
 if (frontendFiles is not null)
 {
     app.UseWhen(
