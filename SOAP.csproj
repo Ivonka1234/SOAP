@@ -9,10 +9,10 @@
 	<Target Name="BuildFrontend" BeforeTargets="Build">
 		<Message Importance="high" Text="Building Angular frontend..." />
 		<Exec Command="npm ci"
-			  WorkingDirectory="$(MSBuildProjectDirectory)\frontend"
-			  Condition="!Exists('$(MSBuildProjectDirectory)\frontend\node_modules')" />
+			  WorkingDirectory="$(MSBuildProjectDirectory)/frontend"
+			  Condition="!Exists('$(MSBuildProjectDirectory)/frontend/node_modules')" />
 		<Exec Command="npm run build"
-			  WorkingDirectory="$(MSBuildProjectDirectory)\frontend" />
+			  WorkingDirectory="$(MSBuildProjectDirectory)/frontend" />
 	</Target>
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
