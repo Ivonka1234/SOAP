@@ -1,34 +1,50 @@
 <section class="hero">
   <div class="hero-content">
     <p class="hero-kicker">
-      <app-icon name="sparkle" [size]="16" />
+      <app-icon name="sparkle" [size]="16"></app-icon>
       Smart Travel Planner
     </p>
-    <h1>Plan your dream trip<br /><span class="highlight">the cute way</span></h1>
+
+    <h1>
+      Plan your dream trip<br />
+      <span class="highlight">the cute way</span>
+    </h1>
+
     <p class="hero-sub">
-      Organize destinations, manage your budget, and let SOAP build a smart day-by-day itinerary for you.
+      Organize destinations, manage your budget, and let SOAP build
+      a smart day-by-day itinerary for you.
     </p>
+
     <div class="hero-actions">
-      <a routerLink="/trips" class="btn btn-primary btn-lg">Start planning</a>
-      <a routerLink="/locations" class="btn btn-secondary btn-lg">Browse locations</a>
+      <a routerLink="/trips" class="btn btn-primary btn-lg">
+        Start planning
+      </a>
+
+      <a routerLink="/locations" class="btn btn-secondary btn-lg">
+        Browse locations
+      </a>
     </div>
   </div>
 
   <div class="hero-cards">
-    <div class="feature-card">
-      <app-icon class="feature-icon" name="map" [size]="40" />
+
+    <a routerLink="/trips" class="feature-card">
+      <app-icon class="feature-icon" name="map" [size]="40"></app-icon>
       <h3>Trips</h3>
       <p>Create trips with dates and budgets</p>
-    </div>
-    <div class="feature-card">
-      <app-icon class="feature-icon" name="pin" [size]="40" />
+    </a>
+
+    <a routerLink="/locations" class="feature-card">
+      <app-icon class="feature-icon" name="pin" [size]="40"></app-icon>
       <h3>Locations</h3>
       <p>Add places with cost & priority</p>
-    </div>
-    <div class="feature-card">
-      <app-icon class="feature-icon" name="calendar" [size]="40" />
+    </a>
+
+    <a routerLink="/itinerary" class="feature-card">
+      <app-icon class="feature-icon" name="calendar" [size]="40"></app-icon>
       <h3>Itinerary</h3>
       <p>Auto-schedule your perfect days</p>
-    </div>
+    </a>
+
   </div>
 </section>

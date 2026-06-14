@@ -9,4 +9,4 @@ import { IconComponent } from '../../shared/icon/icon.component';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent {}
+export class HomeComponent { }

@@ -1,62 +1,8 @@
-.hero {
-  display: flex;
-  flex-direction: column;
-  gap: 3rem;
-  padding: 2rem 0;
-}
-
-.hero-content {
-  text-align: center;
-}
-
-.hero-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--pink-500);
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-}
-
-h1 {
-  font-size: clamp(2rem, 5vw, 3rem);
-  line-height: 1.2;
-  margin-bottom: 1rem;
-  color: var(--text-primary);
-}
-
-.highlight {
-  background: linear-gradient(135deg, var(--pink-400), var(--lavender));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.hero-sub {
-  color: var(--text-secondary);
-  font-size: 1.125rem;
-  max-width: 520px;
-  margin: 0 auto 2rem;
-  line-height: 1.6;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.hero-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
-}
-
 .feature-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
   background: rgba(255, 255, 255, 0.8);
   border: 2px solid var(--pink-100);
   border-radius: 24px;
@@ -80,8 +26,4 @@ h1 {
     color: var(--text-secondary);
     font-size: 0.9rem;
   }
-}
-
-.feature-icon {
-  color: var(--pink-500);
 }
